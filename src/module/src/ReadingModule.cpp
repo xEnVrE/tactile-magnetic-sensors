@@ -143,22 +143,22 @@ bool ReadingModule::close()
 
 bool ReadingModule::calibrate()
 {
-    // Notify that calibration is ongoing
-    mutex_.lock();
+    // // Notify that calibration is ongoing
+    // mutex_.lock();
 
-    is_ongoing_calibration_ = true;
+    // is_ongoing_calibration_ = true;
 
-    mutex_.unlock();
+    // mutex_.unlock();
 
-    // Do calibration
-    skin_sensor_drv_->calibrate();
+    // // Do calibration
+    // skin_sensor_drv_->calibrate();
 
-    // Notify calibration is over
-    mutex_.lock();
+    // // Notify calibration is over
+    // mutex_.lock();
 
-    is_ongoing_calibration_ = false;
+    // is_ongoing_calibration_ = false;
 
-    mutex_.unlock();
+    // mutex_.unlock();
 
     return true;
 }
