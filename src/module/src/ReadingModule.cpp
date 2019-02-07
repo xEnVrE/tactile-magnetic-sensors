@@ -151,7 +151,7 @@ std::pair<bool, std::vector<unsigned int>> ReadingModule::loadListUnsigned(Resou
         if (item_v.isNull())
             return std::make_pair(false, std::vector<unsigned int>());
 
-        if (!item_v.isString())
+        if (!item_v.isInt())
             return std::make_pair(false, std::vector<unsigned int>());
 
         // Is it ok to use 'asInt' for unsigned int?
