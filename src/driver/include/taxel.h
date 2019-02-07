@@ -22,7 +22,7 @@ public:
     inline double getYData(){ return Y; }
     inline double getZData(){ return Z; }
 
-    int getData(std::vector<double> *XYZ);
+    int getData(std::vector<int> *XYZ);
 
     void setID(unsigned int id);
     unsigned int getID();

@@ -71,10 +71,11 @@ void taxel::clearData(){
     Z_Data.clear();
 }
 
-int taxel::getData(std::vector<double> *XYZ){
-    XYZ->at(0) = getXData();
-    XYZ->at(1) = getYData();
-    XYZ->at(2) = getZData();
+int taxel::getData(std::vector<int> *XYZ){
+    XYZ->at(0) = X;
+    XYZ->at(1) = Y;
+    XYZ->at(2) = Z;
+
 
     return 0;
 }
