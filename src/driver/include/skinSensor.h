@@ -20,7 +20,7 @@ public:
 
     bool init();
 
-    int calibrate();
+    void calibrate();
 
     void updateSensors();
 
