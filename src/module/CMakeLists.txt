@@ -26,11 +26,15 @@ add_executable(${EXE_TARGET_NAME}
                ${${EXE_TARGET_NAME}_THRIFT_SRC}
                )
 
+target_include_directories(${EXE_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 target_link_libraries(${EXE_TARGET_NAME}
+                      PRIVATE
                       YARP::YARP_OS
                       YARP::YARP_init
                       YARP::YARP_math
                       YARP::YARP_sig
+                      tactile-magnetic-sensor-driver
                       )
 
 set(${EXE_TARGET_NAME}_CONF ${CMAKE_CURRENT_SOURCE_DIR}/conf/config.ini)
