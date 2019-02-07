@@ -28,7 +28,7 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
     // Get the list of sensor ids
     bool valid_ids;
     std::vector<unsigned int> list_ids;
-    std::tie(valid_ids, list_ids) = loadListUnsigned(rf, "sensor_ids");
+    std::tie(valid_ids, list_ids) = loadListUnsigned(rf, "sensors_ids");
     if ((!valid_ids) || list_ids.size() == 0)
     {
         yError() << log_ID_ << "Cannot retrieve the sensors ids.";
