@@ -78,7 +78,7 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
     }
 
     // Reset flags
-    is_ongoing_calibration_ = false;
+    do_calibration_ = false;
 
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to recieve commands!";
 }
@@ -86,38 +86,30 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
 
 bool ReadingModule::updateModule()
 {
-    // Check if calibration is ongoing
-    bool is_calibration;
+    std::lock_guard<std::mutex> lock(mutex_);
 
-    mutex_.lock();
-
-    is_calibration = is_ongoing_calibration_;
-
-    mutex_.unlock();
-
-    if (is_calibration)
-    {
-        // do nothing
-        return true;
-    }
-
-    // If not ongoing calibration, it is safe to fetch data
     try
     {
-        // Update sensors
-        skin_sensor_drv_->updateSensors();
+        if (do_calibration_)
+        {
+            skin_sensor_drv_->calibrate();
+        }
+        else
+        {
+            // Update sensors
+            skin_sensor_drv_->updateSensors();
 
-        std::vector<int> sensors_data;
-        sensors_data = skin_sensor_drv_->getData();
+            std::vector<int> sensors_data;
+            sensors_data = skin_sensor_drv_->getData();
 
-        // Fill the output yarp vector
-        VectorOf<int>& data_out = port_data_out_.prepare();
+            // Fill the output yarp vector
+            VectorOf<int>& data_out = port_data_out_.prepare();
 
-        data_out = VectorOf<int>(sensors_data.size(), sensors_data.data());
+            data_out = VectorOf<int>(sensors_data.size(), sensors_data.data());
 
-        // Send the data
-        port_data_out_.write();
-
+            // Send the data
+            port_data_out_.write();
+        }
     }
     catch (const std::exception& e)
     {
@@ -143,22 +135,9 @@ bool ReadingModule::close()
 
 bool ReadingModule::calibrate()
 {
-    // // Notify that calibration is ongoing
-    // mutex_.lock();
+    std::lock_guard<std::mutex> lock(mutex_);
 
-    // is_ongoing_calibration_ = true;
-
-    // mutex_.unlock();
-
-    // // Do calibration
-    // skin_sensor_drv_->calibrate();
-
-    // // Notify calibration is over
-    // mutex_.lock();
-
-    // is_ongoing_calibration_ = false;
-
-    // mutex_.unlock();
+    do_calibration_ = true;
 
     return true;
 }

@@ -2,13 +2,14 @@
 #define READINGMODULE_H
 
 #include <yarp/os/BufferedPort.h>
-#include <yarp/os/Mutex.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/sig/Vector.h>
 
 #include <skinSensor.h>
+
+#include <mutex>
 
 #include <thrift/TactileMagneticSensoreModuleIDL.h>
 
@@ -51,9 +52,9 @@ protected:
 
     double period_;
 
-    yarp::os::Mutex mutex_;
+    std::mutex mutex_;
 
-    bool is_ongoing_calibration_;
+    bool do_calibration_;
 };
 
 #endif /* READINGMODULE_H */
