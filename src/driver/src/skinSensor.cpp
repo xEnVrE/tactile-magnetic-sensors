@@ -86,7 +86,7 @@ bool skinSensor::init()
     return triggerOnMTB();
 }
 
-int skinSensor::calibrate()
+void skinSensor::calibrate()
 {
     unsigned id_;
     unsigned short len_;
@@ -94,47 +94,28 @@ int skinSensor::calibrate()
 
     std::stringstream sstr;
 
-    //std::cout << "FTS: Calibrating fingertip sensors" << std::endl;
-
-    // std::cout << "Triggering on MTB ID 0x" << std::hex << ID_Base + ID_16 << std::endl;
-    // Trigger on 16 sensor MTB
-
-    triggerOnMTB();
-
     //Fill Data during 5 seg
-    // std::cout << "Filling data ... " << std::endl;
-    std::chrono::system_clock::time_point startTime = std::chrono::system_clock::now();
-    std::chrono::system_clock::time_point endTime = startTime + std::chrono::seconds(calibrationTimeSeconds);
+    std::chrono::system_clock::time_point endTime = std::chrono::system_clock::now() + std::chrono::seconds(calibrationTimeSeconds);
 
     while (endTime > std::chrono::system_clock::now())
     {
         if (device.readCAN(&id_, &len_, data_) == 0)
         {
-            //# Logics from Python original code: Put all MSB & LSB in a buffer
-            sensors->at(id_).saveXData(data_[1] << 8 | data_[2]);
-            sensors->at(id_).saveYData(data_[3] << 8 | data_[4]);
-            sensors->at(id_).saveZData(data_[5] << 8 | data_[6]);
+             for(size_t i=0;i<numberOfSensors;i++){
+                if(sensors->at(i).getID() == id_)
+                {
+                    sensors->at(i).saveXData(data_[1] << 8 | data_[2]);
+                    sensors->at(i).saveYData(data_[3] << 8 | data_[4]);
+                    sensors->at(i).saveZData(data_[5] << 8 | data_[6]);
+                    break;
+                }
+            }
         }
     }
-    // std::cout << std::endl;
-
-    // std::cout << "Triggering off MTB ID 0x" << std::hex << ID_Base + ID_16 << std::endl;
-    triggerOffMTB();
-
-
-    for(size_t i = 0; i < numberOfSensors; i++){
+    
+    //Fire up calibration for each sensor (average of sensors data and set of baselines)
+    for(size_t i = 0; i < numberOfSensors; i++)
         sensors->at(i).calibrate();
-        sensors->at(i).printToSSTRCalibration(&sstr);
-    }
-
-    //std::cout << "FTS: Calibration finished" << std::endl;
-
-    // std::ofstream fileC;
-    // fileC.open("calibration.txt");
-    // fileC << sstr.str();
-    // fileC.close();
-
-    return 0;
 }
 
 
@@ -160,12 +141,10 @@ void skinSensor::updateSensors()
     unsigned id_;
     unsigned short len_;
     unsigned char data_[8];
-    taxel CurrentSensor;
 
     // Clear the buffer data
-    for(size_t i=0;i<numberOfSensors;i++){
+    for(size_t i=0;i<numberOfSensors;i++)
         sensors->at(i).clearData();
-    }
 
     // Wait for at least averageWindowSize measures of each sensor on MTB1
     while (!allSensorsRead())
