@@ -77,12 +77,31 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
         return false;
     }
 
+    // Reset flags
+    is_ongoing_calibration_ = false;
+
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to recieve commands!";
 }
 
-#include <iostream>
+
 bool ReadingModule::updateModule()
 {
+    // Check if calibration is ongoing
+    bool is_calibration;
+
+    mutex_.lock();
+
+    is_calibration = is_ongoing_calibration_;
+
+    mutex_.unlock();
+
+    if (is_calibration)
+    {
+        // do nothing
+        return true;
+    }
+
+    // If not ongoing calibration, it is safe to fetch data
     try
     {
         // Update sensors
@@ -124,7 +143,23 @@ bool ReadingModule::close()
 
 bool ReadingModule::calibrate()
 {
-    //TODO
+    // Notify that calibration is ongoing
+    mutex_.lock();
+
+    is_ongoing_calibration_ = true;
+
+    mutex_.unlock();
+
+    // Do calibration
+    skin_sensor_drv_->calibrate();
+
+    // Notify calibration is over
+    mutex_.lock();
+
+    is_ongoing_calibration_ = false;
+
+    mutex_.unlock();
+
     return true;
 }
 

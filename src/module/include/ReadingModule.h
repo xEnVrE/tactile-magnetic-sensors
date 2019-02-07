@@ -2,6 +2,7 @@
 #define READINGMODULE_H
 
 #include <yarp/os/BufferedPort.h>
+#include <yarp/os/Mutex.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/RFModule.h>
@@ -49,6 +50,10 @@ protected:
     const std::string log_ID_ = "[TACTILE_MAGNETIC_SENSORS_MODULE]";
 
     double period_;
+
+    yarp::os::Mutex mutex_;
+
+    bool is_ongoing_calibration_;
 };
 
 #endif /* READINGMODULE_H */
