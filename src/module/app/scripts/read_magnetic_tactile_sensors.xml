@@ -5,4 +5,9 @@
     <parameters></parameters>
     <node>localhost</node>
   </module>
+
+  <connection>
+    <from>/tactile-magnetic-sensor-module/data:o</from>
+    <to></to>
+  </connection>
 </application>
