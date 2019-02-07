@@ -1,0 +1,1 @@
+Very simple module for YARP reading the output of magnetic tactile sensors via CAN and sending them through a YARP port.
