@@ -36,6 +36,14 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
         return false;
     }
 
+    // Log
+    yInfo() << log_ID_ << "Loaded configuration:";
+    yInfo() << log_ID_ << "- port_prefix:" << port_prefix;
+    yInfo() << log_ID_ << "- period:" << period_;
+    yInfo() << log_ID_ << "- sensors_ids:";
+    for (unsigned int& id : list_ids)
+        yInfo() << log_ID_ << id;
+
     // Initialize the driver
     skin_sensor_drv_ = std::unique_ptr<skinSensor>(new skinSensor(can_name, list_ids, average_window_size));
 
@@ -43,6 +51,13 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
     if (!port_data_out_.open("/" + port_prefix + "/data:o"))
     {
         yError() << log_ID_ << "Cannot open the data output port.";
+
+        return false;
+    }
+
+    if (!skin_sensor_drv_->init())
+    {
+        yError() << log_ID_ << "Cannot initialize the MTB.";
 
         return false;
     }
@@ -62,18 +77,10 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
         return false;
     }
 
-    // Log
-    yInfo() << log_ID_ << "Loaded configuration:";
-    yInfo() << log_ID_ << "- port_prefix:" << port_prefix;
-    yInfo() << log_ID_ << "- period:" << period_;
-    yInfo() << log_ID_ << "- sensors_ids:";
-    for (unsigned int& id : list_ids)
-        yInfo() << log_ID_ << id;
-
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to recieve commands!";
 }
 
-
+#include <iostream>
 bool ReadingModule::updateModule()
 {
     try
