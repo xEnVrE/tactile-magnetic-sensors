@@ -1,0 +1,8 @@
+<application>
+  <name>Read_magnetic_tactile_sensors</name>
+  <module>
+    <name>tactile-magnetic-sensor-module</name>
+    <parameters></parameters>
+    <node>localhost</node>
+  </module>
+</application>
