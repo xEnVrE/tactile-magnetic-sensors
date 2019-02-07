@@ -13,7 +13,7 @@ skinSensor::skinSensor
     std::string channel,
     std::vector<unsigned int>& sensor_ids,
     std::size_t average_window_size
-    ) :
+) :
     SensorIds(sensor_ids),
     numberOfSensors(sensor_ids.size()),
     averageWindowSize(average_window_size)
@@ -29,8 +29,6 @@ skinSensor::skinSensor
         sensors->at(i).setID(SensorIds[i]);
         std::cout << "Creating Sensor with ID " << SensorIds[i] << std::endl;
     }
-
-    triggerOnMTB();
 }
 
 
@@ -41,7 +39,7 @@ skinSensor::~skinSensor()
 }
 
 
-void skinSensor::triggerOnMTB()
+bool skinSensor::triggerOnMTB()
 {
     unsigned short len_;
     unsigned char data_[8];
@@ -59,10 +57,13 @@ void skinSensor::triggerOnMTB()
     else
     {
         std::cout << "Could not Activate-----------" << std::endl;
+        return false;
     }
 
     //Wait until MTB inits
     std::this_thread::sleep_for(std::chrono::microseconds(2000));
+
+    return true;
 }
 
 
@@ -76,9 +77,14 @@ void skinSensor::triggerOffMTB()
     len_ = 2;
     device.writeCAN(MTB_ID, len_, data_);
 
-    std::this_thread::sleep_for(std::chrono::microseconds(1000));
+    // std::this_thread::sleep_for(std::chrono::microseconds(1000));
 }
 
+
+bool skinSensor::init()
+{
+    return triggerOnMTB();
+}
 
 int skinSensor::calibrate()
 {
@@ -188,16 +194,16 @@ void skinSensor::updateSensors()
 
 std::vector<int> skinSensor::getData()
 {
-    std::vector<int> all_sensors(numberOfSensors);
+    std::vector<int> all_sensors;
 
     for (std::size_t i = 0; i < numberOfSensors; i++)
     {
-        std::vector<double> triplet(3);
+        std::vector<int> triplet(3);
         sensors->at(i).getData(&triplet);
 
-        all_sensors.push_back(static_cast<int>(triplet[0]));
-        all_sensors.push_back(static_cast<int>(triplet[1]));
-        all_sensors.push_back(static_cast<int>(triplet[2]));
+        all_sensors.push_back(triplet[0]);
+        all_sensors.push_back(triplet[1]);
+        all_sensors.push_back(triplet[2]);
     }
 
     return all_sensors;

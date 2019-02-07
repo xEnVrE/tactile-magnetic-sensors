@@ -15,7 +15,10 @@ class skinSensor
 
 public:
     skinSensor(std::string channel, std::vector<unsigned int>& sensor_ids, std::size_t average_window_size);
+
     ~skinSensor();
+
+    bool init();
 
     int calibrate();
 
@@ -29,7 +32,7 @@ protected:
     const unsigned MTB_ID = 0x201;
 
     std::vector<unsigned int> SensorIds;
-    const unsigned numberOfSensors;
+    const int numberOfSensors;
 
     // Number of readings to obtain an average measure from the sensor
     const std::size_t averageWindowSize;
@@ -45,7 +48,7 @@ protected:
 
     bool stop = true;
 
-    void triggerOnMTB();
+    bool triggerOnMTB();
     void triggerOffMTB();
 
     bool allSensorsRead();
