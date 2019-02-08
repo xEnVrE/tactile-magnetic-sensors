@@ -83,16 +83,17 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to recieve commands!";
 }
 
-
+#include <iostream>
 bool ReadingModule::updateModule()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
     try
     {
         if (do_calibration_)
         {
             skin_sensor_drv_->calibrate();
+
+            // reset flag
+            do_calibration_ = false;
         }
         else
         {
@@ -135,8 +136,6 @@ bool ReadingModule::close()
 
 bool ReadingModule::calibrate()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
     do_calibration_ = true;
 
     return true;

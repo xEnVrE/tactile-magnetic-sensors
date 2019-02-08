@@ -9,8 +9,6 @@
 
 #include <skinSensor.h>
 
-#include <mutex>
-
 #include <thrift/TactileMagneticSensoreModuleIDL.h>
 
 
@@ -51,8 +49,6 @@ protected:
     const std::string log_ID_ = "[TACTILE_MAGNETIC_SENSORS_MODULE]";
 
     double period_;
-
-    std::mutex mutex_;
 
     bool do_calibration_;
 };
