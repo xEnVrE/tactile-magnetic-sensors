@@ -85,7 +85,7 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
     return true;
 }
 
-#include <iostream>
+
 bool ReadingModule::updateModule()
 {
     try
