@@ -1,0 +1,52 @@
+<application>
+  <name>Read_magnetic_tactile_sensors</name>
+
+  <module>
+    <name>tactile-magnetic-sensor-logger</name>
+    <parameters></parameters>
+    <node>localhost</node>
+  </module>
+  
+  <connection>
+    <from>/datadumper/right_arm_encoders</from>
+    <to>/tactile-magnetic-sensor-logger/arm_encoders:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/datadumper/right_arm_analogs</from>
+    <to>/tactile-magnetic-sensor-logger/arm_analogs:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/datadumper/torso</from>
+    <to>/tactile-magnetic-sensor-logger/torso:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/datadumper/head</from>
+    <to>/tactile-magnetic-sensor-logger/head:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/datadumper/tactile_raw</from>
+    <to>/tactile-magnetic-sensor-logger/tactile_raw:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/datadumper/tactile_comp</from>
+    <to>/tactile-magnetic-sensor-logger/tactile_comp:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/datadumper/tactile_3d</from>
+    <to>/tactile-magnetic-sensor-logger/tactle_3d:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+</application>
