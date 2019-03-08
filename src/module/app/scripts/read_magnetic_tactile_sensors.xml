@@ -1,13 +1,117 @@
 <application>
   <name>Read_magnetic_tactile_sensors</name>
+
   <module>
     <name>tactile-magnetic-sensor-module</name>
     <parameters></parameters>
     <node>localhost</node>
   </module>
 
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/camera_right --txTime --rxTime --type image</parameters>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/right_arm_state --txTime --rxTime --type bottle</parameters>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/right_arm_encoders --txTime --rxTime --type bottle</parameters>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/right_arm_analogs --txTime --rxTime --type bottle</parameters>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/torso --txTime --rxTime --type bottle</parameters>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/head --txTime --rxTime --type bottle</parameters>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/tactile_raw --txTime --rxTime --type bottle</parameters>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/tactile_comp --txTime --rxTime --type bottle</parameters>
+  </module>
+
+   <module>
+    <name>yarpdatadumper</name>
+    <node>localhost</node>
+    <parameters>--name /datadumper/tactile_3d --txTime --rxTime --type bottle</parameters>
+  </module>
+
+  <connection>
+    <from>/icub/camcalib/right/out</from>
+    <to>/datadumper/camera_right</to>
+    <protocol>mjpeg</protocol>
+  </connection>
+
+  <connection>
+    <from>/icub/cartesianController/right_arm/state:o</from>
+    <to>/datadumper/right_arm_state</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/icub/right_arm/state:o</from>
+    <to>/datadumper/right_arm_encoders</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/icub/right_hand/analog:o</from>
+    <to>/datadumper/right_arm_analogs</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/icub/torso/state:o</from>
+    <to>/datadumper/torso</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/icub/head/state:o</from>
+    <to>/datadumper/head</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/icub/skin/right_hand</from>
+    <to>/datadumper/tactile_raw</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/icub/skin/right_hand_comp</from>
+    <to>/datadumper/tactile_comp</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
   <connection>
     <from>/tactile-magnetic-sensor-module/data:o</from>
-    <to></to>
+    <to>/datadumper/tactile_3d</to>
   </connection>
+
 </application>
