@@ -112,6 +112,7 @@
   <connection>
     <from>/tactile-magnetic-sensor-module/data:o</from>
     <to>/datadumper/tactile_3d</to>
+    <protocol>fast_tcp</protocol>
   </connection>
 
 </application>
