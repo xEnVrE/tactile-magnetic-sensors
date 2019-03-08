@@ -81,6 +81,8 @@ bool ReadingModule::configure(yarp::os::ResourceFinder& rf)
     do_calibration_ = false;
 
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to recieve commands!";
+
+    return true;
 }
 
 #include <iostream>
