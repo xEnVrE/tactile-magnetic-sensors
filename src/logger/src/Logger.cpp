@@ -83,6 +83,8 @@ bool Logger::configure(yarp::os::ResourceFinder& rf)
 
     ports_ok &= port_tactile_3d_.open("/" + port_prefix_ + "/tactile_3d:i");
 
+    ports_ok &= port_rpc_command_.open("/" + port_prefix_ + "/cmd:i");
+
     ports_ok &= this->yarp().attachAsServer(port_rpc_command_);
 
     return ports_ok;
@@ -175,6 +177,8 @@ bool Logger::close()
     port_tactile_comp_.close();
 
     port_tactile_3d_.close();
+
+    port_rpc_command_.close();
 
     return true;
 }
