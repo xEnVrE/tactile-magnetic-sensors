@@ -8,44 +8,44 @@
   </module>
   
   <connection>
-    <from>/datadumper/right_arm_encoders</from>
+    <from>/icub/right_arm/state:o</from>
     <to>/tactile-magnetic-sensor-logger/arm_encoders:i</to>
     <protocol>tcp</protocol>
   </connection>
 
   <connection>
-    <from>/datadumper/right_arm_analogs</from>
+    <from>/icub/right_hand/analog:o</from>
     <to>/tactile-magnetic-sensor-logger/arm_analogs:i</to>
     <protocol>fast_tcp</protocol>
   </connection>
 
   <connection>
-    <from>/datadumper/torso</from>
+    <from>/icub/torso/state:o</from>
     <to>/tactile-magnetic-sensor-logger/torso:i</to>
     <protocol>fast_tcp</protocol>
   </connection>
 
   <connection>
-    <from>/datadumper/head</from>
+    <from>/icub/head/state:o</from>
     <to>/tactile-magnetic-sensor-logger/head:i</to>
     <protocol>fast_tcp</protocol>
   </connection>
 
   <connection>
-    <from>/datadumper/tactile_raw</from>
+    <from>/icub/skin/right_hand</from>
     <to>/tactile-magnetic-sensor-logger/tactile_raw:i</to>
     <protocol>fast_tcp</protocol>
   </connection>
 
   <connection>
-    <from>/datadumper/tactile_comp</from>
+    <from>/icub/skin/right_hand_comp</from>
     <to>/tactile-magnetic-sensor-logger/tactile_comp:i</to>
     <protocol>fast_tcp</protocol>
   </connection>
 
   <connection>
-    <from>/datadumper/tactile_3d</from>
-    <to>/tactile-magnetic-sensor-logger/tactle_3d:i</to>
+    <from>/tactile-magnetic-sensor/data:o</from>
+    <to>/tactile-magnetic-sensor-logger/tactile_3d:i</to>
     <protocol>fast_tcp</protocol>
   </connection>
 
