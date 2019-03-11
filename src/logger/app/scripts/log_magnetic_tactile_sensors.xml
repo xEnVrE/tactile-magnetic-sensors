@@ -1,5 +1,5 @@
 <application>
-  <name>Read_magnetic_tactile_sensors</name>
+  <name>Read_magnetic_tactile_sensors_log</name>
 
   <module>
     <name>tactile-magnetic-sensor-logger</name>
