@@ -6,7 +6,19 @@
     <parameters></parameters>
     <node>localhost</node>
   </module>
-  
+
+  <module>
+    <name>yarpdataplayer</name>
+    <parameters>--withExtraTimeCol 2</parameters>
+    <node>localhost</node>
+  </module>
+
+  <connection>
+    <from>/icub/cartesianController/right_arm/state:o</from>
+    <to>/tactile-magnetic-sensor-logger/arm_state:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
   <connection>
     <from>/icub/right_arm/state:o</from>
     <to>/tactile-magnetic-sensor-logger/arm_encoders:i</to>
