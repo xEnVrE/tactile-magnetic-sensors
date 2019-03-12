@@ -166,6 +166,7 @@ bool Logger::updateModule()
             double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - time_0_).count() / 1000.0;
 
             logger(elapsed,
+                   arm_state_eigen.transpose(),
                    arm_enc_eigen.transpose(),
                    arm_analogs_eigen.transpose(),
                    torso_eigen.transpose(),
