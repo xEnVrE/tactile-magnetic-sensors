@@ -69,6 +69,8 @@ bool Logger::configure(yarp::os::ResourceFinder& rf)
 {
     bool ports_ok = true;
 
+    ports_ok &= port_arm_state_.open("/" + port_prefix_ + "/arm_state:i");
+
     ports_ok &= port_arm_enc_.open("/" + port_prefix_ + "/arm_encoders:i");
 
     ports_ok &= port_analogs_.open("/" + port_prefix_ + "/arm_analogs:i");
@@ -114,13 +116,18 @@ bool Logger::updateModule()
     {
         if (run_local)
         {
+            yarp::os::Bottle* arm_state = port_arm_state_.read(true);
             yarp::os::Bottle* arm_enc = port_arm_enc_.read(true);
             yarp::os::Bottle* arm_analogs = port_analogs_.read(true);
             yarp::os::Bottle* torso = port_torso_.read(true);
             yarp::os::Bottle* head = port_head_.read(true);
             yarp::sig::Vector* tactile_raw = port_tactile_raw_.read(true);
             yarp::sig::Vector* tactile_comp = port_tactile_comp_.read(true);
-            yarp::sig::VectorOf<int>* tactile_3d = port_tactile_3d_.read(true);            
+            yarp::sig::VectorOf<int>* tactile_3d = port_tactile_3d_.read(true);
+
+            VectorXd arm_state_eigen(arm_state->size());
+            for (size_t i = 0; i < arm_state_eigen.size(); i++)
+                arm_state_eigen(i) = arm_state->get(i).asDouble();
 
             VectorXd arm_enc_eigen(arm_enc->size());
             for (size_t i = 0; i < arm_enc_eigen.size(); i++)
@@ -141,7 +148,7 @@ bool Logger::updateModule()
             VectorXd tactile_raw_eigen = toEigen(*tactile_raw);
 
             VectorXd tactile_comp_eigen = toEigen(*tactile_comp);
-        
+
             VectorXd tactile_3d_eigen(tactile_3d->size());
             for (std::size_t i = 0; i < tactile_3d->size(); i++)
                 tactile_3d_eigen(i) = (*tactile_3d)[i];
@@ -164,6 +171,8 @@ bool Logger::updateModule()
 
 bool Logger::close()
 {
+    port_arm_state_.close();
+
     port_arm_enc_.close();
 
     port_analogs_.close();

@@ -44,7 +44,8 @@ public:
 protected:
     std::vector<std::string> log_filenames(const std::string& prefix_path, const std::string& prefix_name) /* override */
     {
-        return {prefix_path + "/" + prefix_name + "_right_arm_encoders",
+        return {prefix_path + "/" + prefix_name + "_right_arm_state",
+                prefix_path + "/" + prefix_name + "_right_arm_encoders",
                 prefix_path + "/" + prefix_name + "_right_arm_analogs",
                 prefix_path + "/" + prefix_name + "_torso",
                 prefix_path + "/" + prefix_name + "_head",
@@ -64,6 +65,8 @@ protected:
     bool run_;
 
     bool quit_;
+
+    yarp::os::BufferedPort<yarp::os::Bottle> port_arm_state_;
 
     yarp::os::BufferedPort<yarp::os::Bottle> port_arm_enc_;
 
