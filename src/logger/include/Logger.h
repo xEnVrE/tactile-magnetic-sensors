@@ -14,6 +14,7 @@
 #include <yarp/os/RFModule.h>
 #include <yarp/sig/Vector.h>
 
+#include <chrono>
 #include <vector>
 #include <string>
 
@@ -44,7 +45,8 @@ public:
 protected:
     std::vector<std::string> log_filenames(const std::string& prefix_path, const std::string& prefix_name) /* override */
     {
-        return {prefix_path + "/" + prefix_name + "_right_arm_state",
+        return {prefix_path + "/" + prefix_name + "_time",
+                prefix_path + "/" + prefix_name + "_right_arm_state",
                 prefix_path + "/" + prefix_name + "_right_arm_encoders",
                 prefix_path + "/" + prefix_name + "_right_arm_analogs",
                 prefix_path + "/" + prefix_name + "_torso",
@@ -83,6 +85,10 @@ protected:
     yarp::os::BufferedPort<yarp::sig::VectorOf<int>> port_tactile_3d_;
 
     yarp::os::Port port_rpc_command_;
+
+    std::chrono::steady_clock::time_point time_0_;
+
+    bool time_0_set_;
 };
 
 #endif /* TACTILEMAGNETICLOGGER_H */

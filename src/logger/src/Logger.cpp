@@ -13,7 +13,8 @@ Logger::Logger(const std::string port_prefix, const double period) :
     port_prefix_(port_prefix),
     period_(period),
     run_(false),
-    quit_(false)
+    quit_(false),
+    time_0_set_(false)
 { }
 
 
@@ -125,6 +126,14 @@ bool Logger::updateModule()
             yarp::sig::Vector* tactile_comp = port_tactile_comp_.read(true);
             yarp::sig::VectorOf<int>* tactile_3d = port_tactile_3d_.read(true);
 
+            // when here, all the blocking calls were successful
+            std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
+            if (!time_0_set_)
+            {
+                time_0_ = current_time;
+                time_0_set_ = true;
+            }
+
             VectorXd arm_state_eigen(arm_state->size());
             for (size_t i = 0; i < arm_state_eigen.size(); i++)
                 arm_state_eigen(i) = arm_state->get(i).asDouble();
@@ -153,7 +162,11 @@ bool Logger::updateModule()
             for (std::size_t i = 0; i < tactile_3d->size(); i++)
                 tactile_3d_eigen(i) = (*tactile_3d)[i];
 
-            logger(arm_enc_eigen.transpose(),
+            // evaluate elapsed time from the beginning
+            double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - time_0_).count() / 1000.0;
+
+            logger(elapsed,
+                   arm_enc_eigen.transpose(),
                    arm_analogs_eigen.transpose(),
                    torso_eigen.transpose(),
                    head_eigen.transpose(),
