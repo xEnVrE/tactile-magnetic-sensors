@@ -28,13 +28,12 @@ def main():
 
     # data
     data = read_data(prefix, "tactile_3d")
-    x_1 = data[:, 0 + (sens_id * 2) * 3]
-    y_1 = data[:, 1 + (sens_id * 2) * 3]
-    z_1 = data[:, 2 + (sens_id * 2) * 3]
-
-    x_2 = data[:, 0 + ((sens_id * 2) + 1) * 3]
-    y_2 = data[:, 1 + ((sens_id * 2) + 1) * 3]
-    z_2 = data[:, 2 + ((sens_id * 2) + 1) * 3]
+    x_1 = data[:, 0 + sens_id * 6]
+    y_1 = data[:, 1 + sens_id * 6]
+    z_1 = data[:, 2 + sens_id * 6]
+    x_2 = data[:, 3 + sens_id * 6]
+    y_2 = data[:, 4 + sens_id * 6]
+    z_2 = data[:, 5 + sens_id * 6]
 
     # make plot
     fig, ax = plt.subplots(2,3)
