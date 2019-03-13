@@ -24,7 +24,7 @@ class Logger : public yarp::os::RFModule,
                public bfl::Logger
 {
 public:
-    Logger(const std::string port_prefix, const double period);
+    Logger(const std::string port_prefix, const double period, const std::string prefix);
 
     virtual ~Logger();
 
@@ -62,11 +62,15 @@ protected:
 
     double period_;
 
+    const std::string prefix_;
+
     yarp::os::Mutex mutex_;
 
     bool run_;
 
     bool quit_;
+
+    int counter_;
 
     yarp::os::BufferedPort<yarp::os::Bottle> port_arm_state_;
 

@@ -5,6 +5,7 @@
 #include <yarp/os/ResourceFinder.h>
 
 #include <cstdlib>
+#include <string>
 
 using namespace yarp::os;
 
@@ -30,8 +31,11 @@ int main(int argc, char** argv)
     /* Get period. */
     const double period = rf.check("period", Value(0.05)).asDouble();
 
+    /* Get perfix. */
+    const std::string prefix = rf.check("prefix", Value(".")).asString();
+
     /* Run module. */
-    Logger logger("tactile-magnetic-sensor-logger", period);
+    Logger logger("tactile-magnetic-sensor-logger", period, prefix);
 
     logger.runModule(rf);
 

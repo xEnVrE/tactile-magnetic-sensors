@@ -3,18 +3,21 @@
 #include <Eigen/Dense>
 
 #include <yarp/eigen/Eigen.h>
+#include <yarp/os/Network.h>
 
 #include <iostream>
 
 using namespace Eigen;
 using namespace yarp::eigen;
 
-Logger::Logger(const std::string port_prefix, const double period) :
+Logger::Logger(const std::string port_prefix, const double period, const std::string prefix) :
     port_prefix_(port_prefix),
     period_(period),
+    prefix_(prefix),
     run_(false),
     quit_(false),
-    time_0_set_(false)
+    time_0_set_(false),
+    counter_(0)
 { }
 
 
@@ -24,7 +27,20 @@ Logger::~Logger()
 
 bool Logger::run()
 {
-    enable_log(".", "data");
+    enable_log(prefix_, "data" + std::to_string(counter_));
+
+    // connect ports
+    bool ok_connect = true;
+    ok_connect &= yarp::os::NetworkBase::connect("/icub/cartesianController/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_state:i", "tcp", false);
+    ok_connect &= yarp::os::NetworkBase::connect("/icub/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_encoders:i", "tcp", false);
+    ok_connect &= yarp::os::NetworkBase::connect("/icub/right_hand/analog:o", "/tactile-magnetic-sensor-logger/arm_analogs:i", "tcp", false);
+    ok_connect &= yarp::os::NetworkBase::connect("/icub/torso/state:o", "/tactile-magnetic-sensor-logger/torso:i", "tcp", false);
+    ok_connect &= yarp::os::NetworkBase::connect("/icub/head/state:o", "/tactile-magnetic-sensor-logger/head:i", "tcp", false);
+    ok_connect &= yarp::os::NetworkBase::connect("/icub/skin/right_hand", "/tactile-magnetic-sensor-logger/tactile_raw:i", "tcp", false);
+    ok_connect &= yarp::os::NetworkBase::connect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", "tcp", false);
+    ok_connect &= yarp::os::NetworkBase::connect("/tactile-magnetic-sensor/data:o", "/tactile-magnetic-sensor-logger/tactile_3d:i", "tcp", false);
+    if (!ok_connect)
+        return false;
 
     mutex_.lock();
 
@@ -32,12 +48,27 @@ bool Logger::run()
 
     mutex_.unlock();
 
+    std::cout << "Ready for session " << counter_ << "." << std::endl;
+
     return true;
 }
 
 
 bool Logger::stop()
 {
+    // disconnect ports
+    bool ok_connect = true;
+    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/cartesianController/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_state:i", false);
+    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_encoders:i", false);
+    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/right_hand/analog:o", "/tactile-magnetic-sensor-logger/arm_analogs:i", false);
+    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/torso/state:o", "/tactile-magnetic-sensor-logger/torso:i", false);
+    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/head/state:o", "/tactile-magnetic-sensor-logger/head:i", false);
+    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand", "/tactile-magnetic-sensor-logger/tactile_raw:i", false);
+    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", false);
+    ok_connect &= yarp::os::NetworkBase::disconnect("/tactile-magnetic-sensor/data:o", "/tactile-magnetic-sensor-logger/tactile_3d:i", false);
+    if (!ok_connect)
+        return false;
+
     disable_log();
 
     mutex_.lock();
@@ -45,6 +76,11 @@ bool Logger::stop()
     run_ = false;
 
     mutex_.unlock();
+
+    std::cout << "Session " << counter_ << " stopped correctly." << std::endl;
+
+    // increase counter
+    counter_++;
 
     return true;
 }
