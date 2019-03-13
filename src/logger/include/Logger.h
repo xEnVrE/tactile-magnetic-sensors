@@ -5,6 +5,10 @@
 
 #include <Eigen/Dense>
 
+#include <iCubFingersEncoders.h>
+
+#include <iCub/iKin/iKinFwd.h>
+
 #include <thrift/LoggerIDL.h>
 
 #include <yarp/os/BufferedPort.h>
@@ -49,12 +53,19 @@ protected:
                 prefix_path + "/" + prefix_name + "_right_arm_state",
                 prefix_path + "/" + prefix_name + "_right_arm_encoders",
                 prefix_path + "/" + prefix_name + "_right_arm_analogs",
-                prefix_path + "/" + prefix_name + "_torso",
-                prefix_path + "/" + prefix_name + "_head",
-                prefix_path + "/" + prefix_name + "_tactile_raw",
+                prefix_path + "/" + prefix_name + "_right_thumb_pose",
+                prefix_path + "/" + prefix_name + "_right_index_pose",
+                prefix_path + "/" + prefix_name + "_right_middle_pose",
+                prefix_path + "/" + prefix_name + "_right_ring_pose",
+                prefix_path + "/" + prefix_name + "_right_little_pose",
+                /* prefix_path + "/" + prefix_name + "_torso", */
+                /* prefix_path + "/" + prefix_name + "_head", */
+                /* prefix_path + "/" + prefix_name + "_tactile_raw", */
                 prefix_path + "/" + prefix_name + "_tactile_comp",
                 prefix_path + "/" + prefix_name + "_tactile_3d"};
     }
+
+    bool setFingersJoints(const yarp::sig::Vector& q);
 
     const std::string log_ID_ = "[LOGGER]";
 
@@ -78,11 +89,11 @@ protected:
 
     yarp::os::BufferedPort<yarp::os::Bottle> port_analogs_;
 
-    yarp::os::BufferedPort<yarp::os::Bottle> port_torso_;
+    /* yarp::os::BufferedPort<yarp::os::Bottle> port_torso_; */
 
-    yarp::os::BufferedPort<yarp::os::Bottle> port_head_;
+    /* yarp::os::BufferedPort<yarp::os::Bottle> port_head_; */
 
-    yarp::os::BufferedPort<yarp::sig::Vector> port_tactile_raw_;
+    /* yarp::os::BufferedPort<yarp::sig::Vector> port_tactile_raw_; */
 
     yarp::os::BufferedPort<yarp::sig::Vector> port_tactile_comp_;
 
@@ -93,6 +104,10 @@ protected:
     std::chrono::steady_clock::time_point time_0_;
 
     bool time_0_set_;
+
+    iCubFingersEncoders fingers_encoders_;
+
+    iCub::iKin::iCubFinger icub_kin_finger_[5];
 };
 
 #endif /* TACTILEMAGNETICLOGGER_H */

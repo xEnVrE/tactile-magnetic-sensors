@@ -15,6 +15,9 @@ find_package(YARP CONFIG REQUIRED
              eigen
              )
 
+# ICUB
+find_package(ICUB REQUIRED)
+
 # Bayes Filters
 find_package(BayesFilters 0.9.0 QUIET)
 if(NOT BayesFilters_FOUND)
@@ -53,6 +56,8 @@ target_link_libraries(${EXE_TARGET_NAME}
                       YARP::YARP_OS
                       YARP::YARP_sig
                       YARP::YARP_eigen
+                      iCubFingersEncoders
+                      ${ICUB_LIBRARIES}
                       )
 
 if(NOT TARGET Eigen3)
@@ -69,6 +74,7 @@ endif()
 
 set(${EXE_TARGET_NAME}_CONF
     ${CMAKE_CURRENT_SOURCE_DIR}/conf/config.ini
+    ${CMAKE_CURRENT_SOURCE_DIR}/conf/analogs_configuration.ini
     )
 
 file(GLOB ${EXE_TARGET_NAME}_XML ${CMAKE_CURRENT_SOURCE_DIR}/app/scripts/*.xml)
