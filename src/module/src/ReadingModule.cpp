@@ -140,6 +140,14 @@ bool ReadingModule::calibrate()
 {
     do_calibration_ = true;
 
+    while(do_calibration_ != false)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        // wait for calibration to be completed
+    }
+
+    yInfo() << "Calibration done.";
+
     return true;
 }
 
