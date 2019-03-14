@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 
+#include <yarp/cv/Cv.h>
 #include <yarp/eigen/Eigen.h>
 #include <yarp/math/Math.h>
 #include <yarp/os/Network.h>
@@ -32,6 +33,12 @@ Logger::Logger(const std::string port_prefix, const double period, const std::st
     icub_kin_finger_[2].setAllConstraints(false);
     icub_kin_finger_[3].setAllConstraints(false);
     icub_kin_finger_[4].setAllConstraints(false);
+
+    if(!port_image_in_.open("/" + port_prefix + "/cam/right:i"))
+    {
+        std::string err = "LOGGER::CTOR::ERROR\n\tError: cannot open right camera input port.";
+        throw(std::runtime_error(err));
+    }
 }
 
 
@@ -59,6 +66,9 @@ bool Logger::run()
 
     if (!ok_connect)
         return false;
+
+    // create a video writer object
+    video_writer_ = std::unique_ptr<cv::VideoWriter>(new cv::VideoWriter("./" + prefix_ + "video_" + std::to_string(counter_) + ".mp4", CV_FOURCC('M','P','4','V'), 30, cv::Size(320, 240)));
 
     mutex_.lock();
 
@@ -92,6 +102,9 @@ bool Logger::stop()
         return false;
 
     disable_log();
+
+    // close video
+    video_writer_->release();
 
     mutex_.lock();
 
@@ -237,6 +250,18 @@ bool Logger::updateModule()
             yarp::sig::Vector* tactile_comp = port_tactile_comp_.read(true);
             yarp::sig::VectorOf<int>* tactile_3d = port_tactile_3d_.read(true);
 
+            // Get camera image
+            yarp::sig::ImageOf<yarp::sig::PixelRgb>* image_in;
+            image_in = port_image_in_.read(false);
+
+            if (image_in != nullptr)
+            {
+                cv::Mat image = yarp::cv::toCvMat(*image_in).clone();
+                cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
+
+                video_writer_->write(image);
+            }
+
             // when here, all the blocking calls were successful
             std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
             if (!time_0_set_)
@@ -355,6 +380,8 @@ bool Logger::close()
     port_tactile_3d_.close();
 
     port_rpc_command_.close();
+
+    port_image_in_.close();
 
     return true;
 }

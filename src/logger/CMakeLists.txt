@@ -13,10 +13,14 @@ find_package(YARP CONFIG REQUIRED
              OS
              sig
              eigen
+             cv
              )
 
 # ICUB
 find_package(ICUB REQUIRED)
+
+# OpenCV
+find_package(OpenCV REQUIRED)
 
 # Bayes Filters
 find_package(BayesFilters 0.9.0 QUIET)
@@ -56,8 +60,10 @@ target_link_libraries(${EXE_TARGET_NAME}
                       YARP::YARP_OS
                       YARP::YARP_sig
                       YARP::YARP_eigen
+                      YARP::YARP_cv
                       iCubFingersEncoders
                       ${ICUB_LIBRARIES}
+                      ${OpenCV_LIBS}
                       )
 
 if(NOT TARGET Eigen3)

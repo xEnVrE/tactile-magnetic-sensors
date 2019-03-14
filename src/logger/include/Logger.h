@@ -11,15 +11,19 @@
 
 #include <thrift/LoggerIDL.h>
 
+#include <opencv2/opencv.hpp>
+
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Mutex.h>
 #include <yarp/os/Port.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/RFModule.h>
+#include <yarp/sig/Image.h>
 #include <yarp/sig/Vector.h>
 
 #include <chrono>
 #include <vector>
+#include <memory>
 #include <string>
 
 
@@ -108,6 +112,12 @@ protected:
     iCubFingersEncoders fingers_encoders_;
 
     iCub::iKin::iCubFinger icub_kin_finger_[5];
+
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>> port_image_in_;
+
+    yarp::sig::ImageOf<yarp::sig::PixelFloat> last_image_in;
+
+    std::unique_ptr<cv::VideoWriter> video_writer_;
 };
 
 #endif /* TACTILEMAGNETICLOGGER_H */
