@@ -14,51 +14,15 @@
   </module>
 
   <connection>
-    <from>/icub/cartesianController/right_arm/state:o</from>
-    <to>/tactile-magnetic-sensor-logger/arm_state:i</to>
+    <from>/object-tracking-manipulation/tactile_sensors_reader_rpc:o</from>
+    <to>/tactile-magnetic-sensor-module/cmd:i</to>
     <protocol>tcp</protocol>
   </connection>
 
   <connection>
-    <from>/icub/right_arm/state:o</from>
-    <to>/tactile-magnetic-sensor-logger/arm_encoders:i</to>
+    <from>/object-tracking-manipulation/tactile_sensors_logger_rpc:o</from>
+    <to>/tactile-magnetic-sensor-logger/cmd:i</to>
     <protocol>tcp</protocol>
-  </connection>
-
-  <connection>
-    <from>/icub/right_hand/analog:o</from>
-    <to>/tactile-magnetic-sensor-logger/arm_analogs:i</to>
-    <protocol>fast_tcp</protocol>
-  </connection>
-
-  <connection>
-    <from>/icub/torso/state:o</from>
-    <to>/tactile-magnetic-sensor-logger/torso:i</to>
-    <protocol>fast_tcp</protocol>
-  </connection>
-
-  <connection>
-    <from>/icub/head/state:o</from>
-    <to>/tactile-magnetic-sensor-logger/head:i</to>
-    <protocol>fast_tcp</protocol>
-  </connection>
-
-  <connection>
-    <from>/icub/skin/right_hand</from>
-    <to>/tactile-magnetic-sensor-logger/tactile_raw:i</to>
-    <protocol>fast_tcp</protocol>
-  </connection>
-
-  <connection>
-    <from>/icub/skin/right_hand_comp</from>
-    <to>/tactile-magnetic-sensor-logger/tactile_comp:i</to>
-    <protocol>fast_tcp</protocol>
-  </connection>
-
-  <connection>
-    <from>/tactile-magnetic-sensor/data:o</from>
-    <to>/tactile-magnetic-sensor-logger/tactile_3d:i</to>
-    <protocol>fast_tcp</protocol>
   </connection>
 
 </application>
