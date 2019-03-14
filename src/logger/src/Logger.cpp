@@ -257,7 +257,6 @@ bool Logger::updateModule()
             if (image_in != nullptr)
             {
                 cv::Mat image = yarp::cv::toCvMat(*image_in).clone();
-                cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
                 video_writer_->write(image);
             }
