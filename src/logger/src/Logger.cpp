@@ -68,7 +68,7 @@ bool Logger::run()
         return false;
 
     // create a video writer object
-    video_writer_ = std::unique_ptr<cv::VideoWriter>(new cv::VideoWriter("./" + prefix_ + "video_" + std::to_string(counter_) + ".mp4", CV_FOURCC('M','P','4','V'), 30, cv::Size(320, 240)));
+    video_writer_ = std::unique_ptr<cv::VideoWriter>(new cv::VideoWriter("./" + prefix_ + "_video_" + std::to_string(counter_) + ".mp4", CV_FOURCC('M','P','4','V'), 30, cv::Size(320, 240)));
 
     mutex_.lock();
 
