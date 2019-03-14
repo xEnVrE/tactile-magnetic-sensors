@@ -226,6 +226,8 @@ bool Logger::updateModule()
     {
         if (run_local)
         {
+            std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+            
             yarp::os::Bottle* arm_state = port_arm_state_.read(true);
             yarp::os::Bottle* arm_enc = port_arm_enc_.read(true);
             yarp::os::Bottle* arm_analogs = port_analogs_.read(true);
@@ -318,6 +320,13 @@ bool Logger::updateModule()
                    // tactile_raw_eigen.transpose(),
                    tactile_comp_eigen.transpose(),
                    tactile_3d_eigen.transpose());
+
+                std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+                std::cout << "Running @ "
+                          << 1 / (std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0)
+                          << " Hz"
+                          << std::endl;
         }
 
         return true;
