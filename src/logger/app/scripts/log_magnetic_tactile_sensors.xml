@@ -25,4 +25,10 @@
     <protocol>tcp</protocol>
   </connection>
 
+  <connection>
+    <from>/icub/camcalib/right/out</from>
+    <to>/tactile-magnetic-sensor-logger/cam/right:i</to>
+    <protocol>mjpeg</protocol>
+  </connection>
+
 </application>
