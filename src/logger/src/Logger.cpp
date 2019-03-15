@@ -101,6 +101,20 @@ bool Logger::stop()
     if (!ok_connect)
         return false;
 
+    // flush port buffer
+    while (port_arm_state_.getPendingReads() > 0)
+        port_arm_state_.read(false);
+    while (port_arm_enc_.getPendingReads() > 0)
+        port_arm_enc_.read(false);
+    while (port_analogs_.getPendingReads() > 0)
+        port_analogs_.read(false);
+    while (port_tactile_comp_.getPendingReads() > 0)
+        port_tactile_comp_.read(false);
+    while (port_tactile_3d_.getPendingReads() > 0)
+        port_tactile_3d_.read(false);
+
+    std::cout << "Ports flushed succesfully" << std::endl;
+
     disable_log();
 
     // close video
