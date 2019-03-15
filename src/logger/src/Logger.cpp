@@ -88,6 +88,12 @@ bool Logger::run()
 
 bool Logger::stop()
 {
+    mutex_.lock();
+
+    run_ = false;
+
+    mutex_.unlock();
+
     // disconnect ports
     bool ok_disconnect = true;
     ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/cartesianController/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_state:i", false);
@@ -119,12 +125,6 @@ bool Logger::stop()
 
     // close video
     video_writer_->release();
-
-    mutex_.lock();
-
-    run_ = false;
-
-    mutex_.unlock();
 
     std::cout << "*********************" << std::endl;
     std::cout << "*                   *" << std::endl;
