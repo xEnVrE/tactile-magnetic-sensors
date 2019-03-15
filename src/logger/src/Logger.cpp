@@ -89,16 +89,16 @@ bool Logger::run()
 bool Logger::stop()
 {
     // disconnect ports
-    bool ok_connect = true;
-    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/cartesianController/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_state:i", false);
-    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_encoders:i", false);
-    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/right_hand/analog:o", "/tactile-magnetic-sensor-logger/arm_analogs:i", false);
-    // ok_connect &= yarp::os::NetworkBase::disconnect("/icub/torso/state:o", "/tactile-magnetic-sensor-logger/torso:i", false);
-    // ok_connect &= yarp::os::NetworkBase::disconnect("/icub/head/state:o", "/tactile-magnetic-sensor-logger/head:i", false);
-    // ok_connect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand", "/tactile-magnetic-sensor-logger/tactile_raw:i", false);
-    ok_connect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", false);
-    ok_connect &= yarp::os::NetworkBase::disconnect("/tactile-magnetic-sensor/data:o", "/tactile-magnetic-sensor-logger/tactile_3d:i", false);
-    if (!ok_connect)
+    bool ok_disconnect = true;
+    ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/cartesianController/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_state:i", false);
+    ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/right_arm/state:o", "/tactile-magnetic-sensor-logger/arm_encoders:i", false);
+    ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/right_hand/analog:o", "/tactile-magnetic-sensor-logger/arm_analogs:i", false);
+    // ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/torso/state:o", "/tactile-magnetic-sensor-logger/torso:i", false);
+    // ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/head/state:o", "/tactile-magnetic-sensor-logger/head:i", false);
+    // ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand", "/tactile-magnetic-sensor-logger/tactile_raw:i", false);
+    ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", false);
+    ok_disconnect &= yarp::os::NetworkBase::disconnect("/tactile-magnetic-sensor/data:o", "/tactile-magnetic-sensor-logger/tactile_3d:i", false);
+    if (!ok_disconnect)
         return false;
 
     // flush port buffer
