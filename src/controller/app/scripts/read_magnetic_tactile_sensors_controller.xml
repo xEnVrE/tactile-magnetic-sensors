@@ -1,0 +1,15 @@
+<application>
+  <name>Read_magnetic_tactile_controller</name>
+
+  <module>
+    <name>tactile-magnetic-sensor-controller</name>
+    <node>localhost</node>
+  </module>
+
+  <connection>
+    <from>/tactile-magnetic-sensor/data:o</from>
+    <to>/tactile-magnetic-sensor-controller/data:i</to>
+    <protocol>fast_tcp</protocol>
+  </connection>
+
+</application>
