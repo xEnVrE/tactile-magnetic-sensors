@@ -25,7 +25,13 @@ Logger::Logger(const std::string port_prefix, const double period, const std::st
     time_0_set_(false),
     counter_(0),
     fingers_encoders_("tactile-magnetic-sensor-logger", "right", port_prefix),
-    icub_kin_finger_{ iCubFinger("right_thumb"), iCubFinger("right_index"), iCubFinger("right_middle"), iCubFinger("right_ring"), iCubFinger("right_little") }
+    icub_kin_finger_{ iCubFinger("right_thumb"), iCubFinger("right_index"), iCubFinger("right_middle"), iCubFinger("right_ring"), iCubFinger("right_little") },
+    is_arm_state_available_(false),
+    is_arm_enc_available_(false),
+    is_arm_analogs_available_(false),
+    is_tactile_comp_available_(false),
+    camera_fps_(24.0),
+    current_camera_period_(0.0)
 {
 
     icub_kin_finger_[0].setAllConstraints(false);
@@ -68,7 +74,7 @@ bool Logger::run()
         return false;
 
     // create a video writer object
-    video_writer_ = std::unique_ptr<cv::VideoWriter>(new cv::VideoWriter("./" + prefix_ + "_video_" + std::to_string(counter_) + ".mp4", CV_FOURCC('M','P','4','V'), 30, cv::Size(320, 240)));
+    video_writer_ = std::unique_ptr<cv::VideoWriter>(new cv::VideoWriter("./" + prefix_ + "_video_" + std::to_string(counter_) + ".mp4", CV_FOURCC('M','P','4','V'), camera_fps_, cv::Size(320, 240)));
 
     mutex_.lock();
 
@@ -93,6 +99,24 @@ bool Logger::stop()
     run_ = false;
 
     mutex_.unlock();
+
+    // close files
+    disable_log();
+
+    // close video
+    video_writer_->release();
+
+    // reset flags
+    is_arm_state_available_ = false;
+    is_arm_enc_available_ = false;
+    is_arm_analogs_available_ = false;
+    is_tactile_comp_available_ = false;
+
+    // reset timer
+    time_0_set_ = false;
+
+    // reset camera period
+    current_camera_period_ = 0.0;
 
     // disconnect ports
     bool ok_disconnect = true;
@@ -119,21 +143,11 @@ bool Logger::stop()
     while (port_tactile_3d_.getPendingReads() > 0)
         port_tactile_3d_.read(false);
 
-    std::cout << "Ports flushed succesfully" << std::endl;
-
-    disable_log();
-
-    // close video
-    video_writer_->release();
-
     std::cout << "*********************" << std::endl;
     std::cout << "*                   *" << std::endl;
     std::cout << "Session " << counter_ << " stopped correctly." << std::endl;
     std::cout << "*                   *" << std::endl;
     std::cout << "*********************" << std::endl;
-
-    // reset timer
-    time_0_set_ = false;
 
     // increase counter
     counter_++;
@@ -253,50 +267,74 @@ bool Logger::updateModule()
     {
         if (run_local)
         {
-            std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-            
-            yarp::os::Bottle* arm_state = port_arm_state_.read(true);
-            yarp::os::Bottle* arm_enc = port_arm_enc_.read(true);
-            yarp::os::Bottle* arm_analogs = port_analogs_.read(true);
+            // Block on the 3d tactile sensors since their are the fastest
+            yarp::sig::VectorOf<int>* tactile_3d = port_tactile_3d_.read(true);
+
+            // Use non-blocking calls here instead
+            // since not loosing information from the 3d tactile sensors is more important
+            yarp::os::Bottle* arm_state = port_arm_state_.read(false);
+            if (arm_state != nullptr)
+            {
+                last_arm_state_ = *arm_state;
+                is_arm_state_available_ = true;
+            }
+            yarp::os::Bottle* arm_enc = port_arm_enc_.read(false);
+            if (arm_enc != nullptr)
+            {
+                last_arm_enc_ = *arm_enc;
+                is_arm_enc_available_ = true;
+            }
+            yarp::os::Bottle* arm_analogs = port_analogs_.read(false);
+            if (arm_analogs != nullptr)
+            {
+                last_arm_analogs_ = *arm_analogs;
+                is_arm_analogs_available_ = true;
+            }
             // yarp::os::Bottle* torso = port_torso_.read(true);
             // yarp::os::Bottle* head = port_head_.read(true);
             // yarp::sig::Vector* tactile_raw = port_tactile_raw_.read(true);
-            yarp::sig::Vector* tactile_comp = port_tactile_comp_.read(true);
-            yarp::sig::VectorOf<int>* tactile_3d = port_tactile_3d_.read(true);
-
-            // Get camera image
-            yarp::sig::ImageOf<yarp::sig::PixelRgb>* image_in;
-            image_in = port_image_in_.read(false);
-
-            if (image_in != nullptr)
+            yarp::sig::Vector* tactile_comp = port_tactile_comp_.read(false);
+            if (tactile_comp != nullptr)
             {
-                cv::Mat image = yarp::cv::toCvMat(*image_in).clone();
-
-                video_writer_->write(image);
+                last_tactile_comp_ = *tactile_comp;
+                is_tactile_comp_available_ = true;
             }
 
-            // when here, all the blocking calls were successful
+            // Synchronize so that at least one reading is available for each sensor
+            if (!(is_arm_state_available_ &&
+                  is_arm_enc_available_ &&
+                  is_arm_analogs_available_ &&
+                  is_tactile_comp_available_))
+            {
+                // We need at least one reading to be available for each sensor
+                return true;
+            }
+
+            // Once all the data is available start counting
             std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
             if (!time_0_set_)
             {
                 time_0_ = current_time;
+
+                last_time_ = 0.0;
+
                 time_0_set_ = true;
             }
 
-            yarp::sig::Vector arm_state_yarp(arm_state->size());
+            yarp::sig::Vector arm_state_yarp(last_arm_state_.size());
             for (size_t i = 0; i < arm_state_yarp.size(); i++)
-                arm_state_yarp(i) = arm_state->get(i).asDouble();
+                arm_state_yarp(i) = last_arm_state_.get(i).asDouble();
             VectorXd arm_state_eigen = toEigen(arm_state_yarp);
 
-            yarp::sig::Vector arm_enc_yarp(arm_enc->size());
+            yarp::sig::Vector arm_enc_yarp(last_arm_enc_.size());
             for (size_t i = 0; i < arm_enc_yarp.size(); i++)
-                arm_enc_yarp(i) = arm_enc->get(i).asDouble();
+                arm_enc_yarp(i) = last_arm_enc_.get(i).asDouble();
             VectorXd arm_enc_eigen = toEigen(arm_enc_yarp);
             setFingersJoints(arm_enc_yarp);
 
-            VectorXd arm_analogs_eigen(arm_analogs->size());
+            VectorXd arm_analogs_eigen(last_arm_analogs_.size());
             for (size_t i = 0; i < arm_analogs_eigen.size(); i++)
-                arm_analogs_eigen(i) = arm_analogs->get(i).asDouble();
+                arm_analogs_eigen(i) = last_arm_analogs_.get(i).asDouble();
 
             // VectorXd torso_eigen(torso->size());
             // for (size_t i = 0; i < torso_eigen.size(); i++)
@@ -335,7 +373,7 @@ bool Logger::updateModule()
                 fingertips_poses.at(i) = toEigen(tip_pose);
             }
 
-            VectorXd tactile_comp_eigen = toEigen(*tactile_comp);
+            VectorXd tactile_comp_eigen = toEigen(last_tactile_comp_);
 
             VectorXd tactile_3d_eigen(tactile_3d->size());
             for (std::size_t i = 0; i < tactile_3d->size(); i++)
@@ -343,6 +381,35 @@ bool Logger::updateModule()
 
             // evaluate elapsed time from the beginning
             double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - time_0_).count() / 1000.0;
+
+            double step = elapsed - last_time_;
+
+            // Get camera image
+            yarp::sig::ImageOf<yarp::sig::PixelRgb>* image_in;
+            image_in = port_image_in_.read(false);
+
+            // Try to save frames at approximately camera_fps_ Hz
+            // Assuming that step always less than 1.0 / camera_fps_
+            if ((current_camera_period_ > 1.0 / camera_fps_))
+            {
+                if (image_in != nullptr)
+                {
+                    cv::Mat image = yarp::cv::toCvMat(*image_in).clone();
+
+                    video_writer_->write(image);
+                }
+                current_camera_period_ = 0.0;
+            }
+            else
+                current_camera_period_ += step;
+
+            std::cout << "Running @ "
+                      << 1.0 / step
+                      << " Hz"
+                      << std::endl;
+
+            // store last value for next iteration
+            last_time_ = elapsed;
 
             logger(elapsed,
                    arm_state_eigen.transpose(),
@@ -358,13 +425,6 @@ bool Logger::updateModule()
                    // tactile_raw_eigen.transpose(),
                    tactile_comp_eigen.transpose(),
                    tactile_3d_eigen.transpose());
-
-                std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-                std::cout << "Running @ "
-                          << 1 / (std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0)
-                          << " Hz"
-                          << std::endl;
         }
 
         return true;

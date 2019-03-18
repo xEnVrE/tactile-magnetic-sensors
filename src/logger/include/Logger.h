@@ -109,6 +109,8 @@ protected:
 
     bool time_0_set_;
 
+    double last_time_;
+
     iCubFingersEncoders fingers_encoders_;
 
     iCub::iKin::iCubFinger icub_kin_finger_[5];
@@ -118,6 +120,26 @@ protected:
     yarp::sig::ImageOf<yarp::sig::PixelFloat> last_image_in;
 
     std::unique_ptr<cv::VideoWriter> video_writer_;
+
+    double current_camera_period_;
+
+    const double camera_fps_;
+
+    yarp::os::Bottle last_arm_state_;
+
+    bool is_arm_state_available_;
+
+    yarp::os::Bottle last_arm_enc_;
+
+    bool is_arm_enc_available_;
+
+    yarp::os::Bottle last_arm_analogs_;
+
+    bool is_arm_analogs_available_;
+
+    yarp::sig::Vector last_tactile_comp_;
+
+    bool is_tactile_comp_available_;
 };
 
 #endif /* TACTILEMAGNETICLOGGER_H */
