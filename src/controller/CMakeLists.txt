@@ -13,10 +13,12 @@ find_package(ICUB REQUIRED)
 
 set(${EXE_TARGET_NAME}_HDR
     include/Controller.h
+    include/FingerController.h
     )
 
 set(${EXE_TARGET_NAME}_SRC
     src/Controller.cpp
+    src/FingerController.cpp
     src/main.cpp
     )
 
