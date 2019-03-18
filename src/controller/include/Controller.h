@@ -40,6 +40,16 @@ protected:
     yarp::os::BufferedPort<yarp::sig::VectorOf<int>> tactile_sensors_data_in_;
 
     /**
+     * Local copy of the last reading from the sensors
+     */
+    yarp::sig::VectorOf<int> tactile_readings_;
+
+    /**
+     * Remember if tactile data was received at least one time
+     */
+    bool is_tactile_reading_available_;
+
+    /**
      * Port to get user commands from.
      */
     yarp::os::Port port_rpc_command_;

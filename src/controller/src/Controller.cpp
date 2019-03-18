@@ -46,6 +46,9 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
         return false;
     }
 
+    // Reset flag
+    is_tactile_reading_available_ = false;
+
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to receive commands!";
 
     return true;
@@ -56,6 +59,26 @@ bool Controller::updateModule()
 {
     // Note: the module continue to run at approximately 1.0 / period_ unless
     // 'false' is returned
+
+    // Get feedback from tactile sensors
+    bool blocking_read = false;
+    VectorOf<int>* data = tactile_sensors_data_in_.read(false);
+
+    // Check if data is valid
+    if (data != nullptr)
+    {
+        // If available, update data
+        tactile_readings_ = *data;
+
+        // Remember we received data at least one time
+        is_tactile_reading_available_ = true;
+    }
+
+    // Do control if feedback is available
+    if (is_tactile_reading_available_)
+    {
+        // TODO: control fingers
+    }
 
     return true;
 }
