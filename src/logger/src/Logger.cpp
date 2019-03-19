@@ -64,7 +64,7 @@ bool Logger::run()
     // ok_connect &= yarp::os::NetworkBase::connect("/icub/torso/state:o", "/tactile-magnetic-sensor-logger/torso:i", "tcp", false);
     // ok_connect &= yarp::os::NetworkBase::connect("/icub/head/state:o", "/tactile-magnetic-sensor-logger/head:i", "tcp", false);
     // ok_connect &= yarp::os::NetworkBase::connect("/icub/skin/right_hand", "/tactile-magnetic-sensor-logger/tactile_raw:i", "tcp", false);
-    ok_connect &= yarp::os::NetworkBase::connect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", "tcp", false);
+    // ok_connect &= yarp::os::NetworkBase::connect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", "tcp", false);
     ok_connect &= yarp::os::NetworkBase::connect("/tactile-magnetic-sensor/data:o", "/tactile-magnetic-sensor-logger/tactile_3d:i", "tcp", false);
 
     // offline only
@@ -126,7 +126,7 @@ bool Logger::stop()
     // ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/torso/state:o", "/tactile-magnetic-sensor-logger/torso:i", false);
     // ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/head/state:o", "/tactile-magnetic-sensor-logger/head:i", false);
     // ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand", "/tactile-magnetic-sensor-logger/tactile_raw:i", false);
-    ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", false);
+    // ok_disconnect &= yarp::os::NetworkBase::disconnect("/icub/skin/right_hand_comp", "/tactile-magnetic-sensor-logger/tactile_comp:i", false);
     ok_disconnect &= yarp::os::NetworkBase::disconnect("/tactile-magnetic-sensor/data:o", "/tactile-magnetic-sensor-logger/tactile_3d:i", false);
     if (!ok_disconnect)
         return false;
