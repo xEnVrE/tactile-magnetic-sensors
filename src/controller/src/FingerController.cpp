@@ -2,6 +2,8 @@
 
 #include <yarp/math/Math.h>
 
+#include <limits>
+
 using namespace yarp::dev;
 using namespace yarp::math;
 using namespace yarp::os;
@@ -168,17 +170,17 @@ bool FingerController::close()
         return false;
     }
 
-    // restore initial control mode
-    for (size_t i=0; i<ctl_joints_.size(); i++)
-    {
-        if (!(imod_->setControlMode(ctl_joints_[i], initial_modes_[i])))
-        {
-            yError() << "FingerController:close"
-                     << "Error: unable to restore the initial control modes for finger"
-                     << laterality_ << "-" << name_;
-            return false;
-        }
-    }
+    // // restore initial control mode
+    // for (size_t i=0; i<ctl_joints_.size(); i++)
+    // {
+    //     if (!(imod_->setControlMode(ctl_joints_[i], initial_modes_[i])))
+    //     {
+    //         yError() << "FingerController:close"
+    //                  << "Error: unable to restore the initial control modes for finger"
+    //                  << laterality_ << "-" << name_;
+    //         return false;
+    //     }
+    // }
 
     return true;
 }
@@ -199,15 +201,27 @@ bool FingerController::goHome(const double& ref_vel)
 
     // set reference joints velocities
     // the same velocity is used for all the joints
-    yarp::sig::Vector speeds(ctl_joints_.size(), ref_vel);
-    if (!(ipos_->setRefSpeeds(ctl_joints_.size(), ctl_joints_.getFirst(), speeds.data())))
+    for (std::size_t i = 0; i < ctl_joints_.size(); i++)
     {
-        yInfo() << "FingerController::goHome Error:"
-                << "unable to set joints reference speeds for finger"
-                << laterality_ << "-" << name_;
+        ipos_->setRefAcceleration(ctl_joints_[i], std::numeric_limits<double>::max());
+        // if (!(
+	ipos_->setRefSpeed(ctl_joints_[i], ref_vel);// ))
+	// {
+	//     yInfo() << "FingerController::goHome Error:"
+	// 	    << "unable to set joints reference speeds for finger"
+	// 	    << laterality_ << "-" << name_ << "(joint #" << ctl_joints_[i] << ")";
 
-        return false;
+	//     return false;
+	// }
     }
+    // if (!(ipos_->setRefSpeeds(ctl_joints_.size(), ctl_joints_.getFirst(), speeds.data())))
+    // {
+    //     yInfo() << "FingerController::goHome Error:"
+    //             << "unable to set joints reference speeds for finger"
+    //             << laterality_ << "-" << name_;
+
+    //     return false;
+    // }
 
     // restore initial position of finger joints
     if (!(ipos_->positionMove(ctl_joints_.size(), ctl_joints_.getFirst(), joints_home_.data())))
@@ -290,6 +304,11 @@ bool FingerController::setJointsVelocities(const yarp::sig::Vector& vels, const 
         }
     }
 
+    // if (name_ == "thumb")
+    //   {
+    // 	yInfo() << motors_encoders_[ctl_joints_[1]];
+    //   }
+
     // enforce joints desired limits limits if required
     if (enforce_joints_limits)
         enforceJointsLimits(velocities, motors_encoders_);
@@ -317,14 +336,25 @@ bool FingerController::setJointsRelativePosition(const yarp::sig::Vector& deltas
 
     // set reference joints velocities
     // the same velocity is used for all the joints
-    if (!(ipos_->setRefSpeeds(ctl_joints_.size(), ctl_joints_.getFirst(), vels.data())))
+    for (std::size_t i = 0; i < ctl_joints_.size(); i++)
     {
-        yInfo() << "FingerController::setJointsRelativePosition Error:"
-                << "unable to set joints reference speeds for finger"
-                << laterality_ << "-" << name_;
+        if (!(ipos_->setRefSpeed(ctl_joints_[i], vels[i])))
+	{
+	    yInfo() << "FingerController::goHome Error:"
+		    << "unable to set joints reference speeds for finger"
+		    << laterality_ << "-" << name_ << "(joint #" << ctl_joints_[i] << ")";
 
-        return false;
+	    return false;
+	}
     }
+    // if (!(ipos_->setRefSpeeds(ctl_joints_.size(), ctl_joints_.getFirst(), vels.data())))
+    // {
+    //     yInfo() << "FingerController::setJointsRelativePosition Error:"
+    //             << "unable to set joints reference speeds for finger"
+    //             << laterality_ << "-" << name_;
+
+    //     return false;
+    // }
 
     // evaluate final configuration
     yarp::sig::Vector final_configuration(ctl_joints_.size());
