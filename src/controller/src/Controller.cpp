@@ -653,18 +653,19 @@ yarp::sig::Vector Controller::loadVectorDouble(yarp::os::ResourceFinder& rf, con
     return vector;
 }
 
+
 bool Controller::calibrate_tactile_sensors()
 {
-  Bottle cmd, reply;
-  cmd.addString("calibrate");
+    Bottle cmd, reply;
+    cmd.addString("calibrate");
 
-  if(!tactile_sensor_reader_port_.write(cmd, reply))
-    return false;
+    if(!tactile_sensor_reader_port_.write(cmd, reply))
+        return false;
 
-  if (reply.get(0).asString() != "ok")
-    return false;
+    if (reply.get(0).asString() != "ok")
+        return false;
 
-  return true;
+    return true;
 }
 
 
