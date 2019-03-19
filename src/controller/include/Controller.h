@@ -13,6 +13,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/Mutex.h>
 #include <yarp/os/Port.h>
+#include <yarp/os/RpcClient.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/sig/Vector.h>
@@ -56,10 +57,16 @@ public:
 
     bool stop() override;
 
+    bool thr(const int16_t threshold_0, const int16_t threshold_1);
+
 protected:
     std::vector<std::string> loadListString(yarp::os::ResourceFinder& rf, const std::string key);
 
     yarp::sig::Vector loadVectorDouble(yarp::os::ResourceFinder& rf, const std::string key, const std::size_t size);
+
+    bool calibrate_tactile_sensors();
+
+    yarp::os::RpcClient tactile_sensor_reader_port_;
 
     /**
      * Port to get the signal of the tactile sensors from.
@@ -171,6 +178,12 @@ protected:
      * Name of the robot.
      */
     std::string robot_;
+
+    double threshold_0_;
+    double threshold_1_;
+
+    int fg_0_moves_;
+    int fg_1_moves_;
 };
 
 #endif /* CONTROLLER_H */

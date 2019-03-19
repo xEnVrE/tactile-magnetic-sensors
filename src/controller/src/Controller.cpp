@@ -1,5 +1,6 @@
 #include <Controller.h>
 
+#include <yarp/os/Bottle.h>
 #include <yarp/os/LogStream.h>
 #include <yarp/os/ResourceFinder.h>
 
@@ -61,6 +62,10 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
     // Reset flags
     is_tactile_reading_available_ = false;
     is_encoders_reading_available_ = false;
+
+    // Reset counters
+    int fg_0_moves_ = 0;
+    int fg_1_moves_ = 0;
 
     // prepare properties for the Encoders
     yarp::os::Property prop;
@@ -167,8 +172,20 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
         fingers_[name] = finger;
     }
 
+    // open rpc clients
+    if (!tactile_sensor_reader_port_.open("/" + port_prefix + "/tactile_sensors_reader_rpc:o"))
+      {
+	yError() << log_ID_ << "Unable to open the RPC client port to the 3d tactile sensors reading module.";
+
+	return false;
+      }
+
     // reset control mode
     mode_ = ControlMode::Idle;
+
+    // reset threshold
+    threshold_0_= 45.0;
+    threshold_1_ = 45.0;
 
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to receive commands!";
 
@@ -222,13 +239,61 @@ bool Controller::updateModule()
         // Do control if feedback is available
         if (is_tactile_reading_available_ && is_encoders_reading_available_)
         {
+	    double middle_0_x = tactile_readings_[12];
+	    double middle_0_y = tactile_readings_[13];
+	    double middle_0_z = tactile_readings_[14];
+
+	    double middle_1_x = tactile_readings_[15];
+	    double middle_1_y = tactile_readings_[16];
+	    double middle_1_z = tactile_readings_[17];
+
+	    double thumb_0_x = tactile_readings_[0];
+	    double thumb_0_y = tactile_readings_[1];
+	    double thumb_0_z = tactile_readings_[2];
+
+	    double thumb_1_x = tactile_readings_[3];
+	    double thumb_1_y = tactile_readings_[4];
+	    double thumb_1_z = tactile_readings_[5];
+
+	    double norm_middle_0 = std::sqrt(std::pow(middle_0_x, 2) + std::pow(middle_0_y, 2) + std::pow(middle_0_z, 2));
+	    double norm_middle_1 = std::sqrt(std::pow(middle_1_x, 2) + std::pow(middle_1_y, 2) + std::pow(middle_1_z, 2));
+	    double norm_thumb_0 = std::sqrt(std::pow(thumb_0_x, 2) + std::pow(thumb_0_y, 2) + std::pow(thumb_0_z, 2));
+	    double norm_thumb_1 = std::sqrt(std::pow(thumb_1_x, 2) + std::pow(thumb_1_y, 2) + std::pow(thumb_1_z, 2));
+
+
+	    // bool good_grasp = ((std::abs(index_z) > threshold_) || (std::abs(thumb_z) > threshold_));
+
             // TODO: control fingers
             for (auto& finger : fingers_)
             {
-                // if (condition_0)
-                    finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
-                // else if (condition_1)
-                //     finger.second.switchToPositionControl();
+	      if (finger.first == "thumb")
+		{
+		  if ((norm_thumb_0 < threshold_0_) && (norm_thumb_1 < threshold_0_))
+		    {
+		      finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
+		      fg_0_moves_++;
+		      yInfo() << "Thumb moves" << fg_0_moves_;
+		    }
+		  else
+		    {
+		      finger.second.switchToPositionControl();
+		      // yInfo() << "** Thumb stops";
+		    }
+		}
+	      else if (finger.first == "middle")
+		{
+		  if ((norm_middle_0 < threshold_1_) && (norm_middle_1 < threshold_1_))
+		    {
+		      fg_1_moves_++;
+		      yInfo() << "Middle moves" << fg_1_moves_;
+		      finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
+		    }
+		  else
+		    {
+		      // yInfo() << "** Middle stops";
+		      finger.second.switchToPositionControl();
+		    }
+		}
 
             }
         }
@@ -298,6 +363,9 @@ double Controller::getPeriod()
 
 bool Controller::close()
 {
+
+  tactile_sensor_reader_port_.close();
+
     return true;
 }
 
@@ -307,6 +375,8 @@ bool Controller::close()
  */
 bool Controller::grasp()
 {
+    calibrate_tactile_sensors();
+
     mutex_.lock();
     mode_ = ControlMode::Close;
     mutex_.unlock();
@@ -384,6 +454,19 @@ bool Controller::stop()
 }
 
 
+bool Controller::thr(const int16_t threshold_0, const int16_t threshold_1)
+{
+  mutex_.lock();
+  threshold_0_ = threshold_0;
+  threshold_1_ = threshold_1;
+  mutex_.unlock();
+
+  yInfo() << "New thresholds are:" << threshold_0_ << ", " << threshold_1_;
+
+  return true;
+}
+
+
 std::vector<std::string> Controller::loadListString(ResourceFinder& rf, const std::string key)
 {
     bool ok = true;
@@ -454,3 +537,16 @@ yarp::sig::Vector Controller::loadVectorDouble(yarp::os::ResourceFinder& rf, con
     return vector;
 }
 
+bool Controller::calibrate_tactile_sensors()
+{
+  Bottle cmd, reply;
+  cmd.addString("calibrate");
+
+  if(!tactile_sensor_reader_port_.write(cmd, reply))
+    return false;
+
+  if (reply.get(0).asString() != "ok")
+    return false;
+
+  return true;
+}
