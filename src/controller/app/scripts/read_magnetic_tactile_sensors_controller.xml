@@ -12,4 +12,10 @@
     <protocol>fast_tcp</protocol>
   </connection>
 
+  <connection>
+    <from>/tactile-magnetic-sensor-controller/tactile_sensors_reader_rpc:o</from>
+    <to>/tactile-magnetic-sensor/cmd:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
 </application>
