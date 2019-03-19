@@ -396,7 +396,7 @@ bool Logger::updateModule()
 
             // Try to save frames at approximately camera_fps_ Hz
             // Assuming that step always less than 1.0 / camera_fps_
-	    if ((current_camera_period_ > 1.0 / camera_fps_) && is_last_image_available_)
+	    if ((current_camera_period_ > 1.0 / camera_fps_) && is_last_image_avaiable_)
             {
 	        cv::Mat image = yarp::cv::toCvMat(last_image_in_).clone();
 
