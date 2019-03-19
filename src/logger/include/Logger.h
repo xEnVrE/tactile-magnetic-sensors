@@ -65,7 +65,7 @@ protected:
                 /* prefix_path + "/" + prefix_name + "_torso", */
                 /* prefix_path + "/" + prefix_name + "_head", */
                 /* prefix_path + "/" + prefix_name + "_tactile_raw", */
-                prefix_path + "/" + prefix_name + "_tactile_comp",
+                /* prefix_path + "/" + prefix_name + "_tactile_comp", */
                 prefix_path + "/" + prefix_name + "_tactile_3d"};
     }
 
@@ -117,7 +117,9 @@ protected:
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb>> port_image_in_;
 
-    yarp::sig::ImageOf<yarp::sig::PixelFloat> last_image_in;
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> last_image_in_;
+
+    bool is_last_image_avaiable_;
 
     std::unique_ptr<cv::VideoWriter> video_writer_;
 

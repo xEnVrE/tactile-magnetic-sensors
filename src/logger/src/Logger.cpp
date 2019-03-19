@@ -293,18 +293,18 @@ bool Logger::updateModule()
             // yarp::os::Bottle* torso = port_torso_.read(true);
             // yarp::os::Bottle* head = port_head_.read(true);
             // yarp::sig::Vector* tactile_raw = port_tactile_raw_.read(true);
-            yarp::sig::Vector* tactile_comp = port_tactile_comp_.read(false);
-            if (tactile_comp != nullptr)
-            {
-                last_tactile_comp_ = *tactile_comp;
-                is_tactile_comp_available_ = true;
-            }
+            // yarp::sig::Vector* tactile_comp = port_tactile_comp_.read(false);
+            // if (tactile_comp != nullptr)
+            // {
+            //     last_tactile_comp_ = *tactile_comp;
+            //     is_tactile_comp_available_ = true;
+            // }
 
             // Synchronize so that at least one reading is available for each sensor
             if (!(is_arm_state_available_ &&
                   is_arm_enc_available_ &&
-                  is_arm_analogs_available_ &&
-                  is_tactile_comp_available_))
+                  is_arm_analogs_available_))//  &&
+                  // is_tactile_comp_available_)
             {
                 // We need at least one reading to be available for each sensor
                 return true;
@@ -373,7 +373,7 @@ bool Logger::updateModule()
                 fingertips_poses.at(i) = toEigen(tip_pose);
             }
 
-            VectorXd tactile_comp_eigen = toEigen(last_tactile_comp_);
+            // VectorXd tactile_comp_eigen = toEigen(last_tactile_comp_);
 
             VectorXd tactile_3d_eigen(tactile_3d->size());
             for (std::size_t i = 0; i < tactile_3d->size(); i++)
@@ -388,17 +388,20 @@ bool Logger::updateModule()
             yarp::sig::ImageOf<yarp::sig::PixelRgb>* image_in;
             image_in = port_image_in_.read(false);
 
+	    if (image_in != nullptr)
+	    {
+	        last_image_in_ = *image_in;
+		is_last_image_avaiable_ = true;
+	    }
+
             // Try to save frames at approximately camera_fps_ Hz
             // Assuming that step always less than 1.0 / camera_fps_
-            if ((current_camera_period_ > 1.0 / camera_fps_))
+	    if ((current_camera_period_ > 1.0 / camera_fps_) && is_last_image_available_)
             {
-                if (image_in != nullptr)
-                {
-                    cv::Mat image = yarp::cv::toCvMat(*image_in).clone();
+	        cv::Mat image = yarp::cv::toCvMat(last_image_in_).clone();
 
-                    video_writer_->write(image);
-                }
-                current_camera_period_ = 0.0;
+	        video_writer_->write(image);
+	        current_camera_period_ = 0.0;
             }
             else
                 current_camera_period_ += step;
@@ -423,7 +426,7 @@ bool Logger::updateModule()
                    // torso_eigen.transpose(),
                    // head_eigen.transpose(),
                    // tactile_raw_eigen.transpose(),
-                   tactile_comp_eigen.transpose(),
+                   // tactile_comp_eigen.transpose(),
                    tactile_3d_eigen.transpose());
         }
 
