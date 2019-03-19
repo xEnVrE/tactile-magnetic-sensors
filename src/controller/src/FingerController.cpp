@@ -80,16 +80,16 @@ bool FingerController::init
     }
 
     // set the velocity control mode for the controlled DoFs
-    if (!(setControlMode(VOCAB_CM_VELOCITY)))
-    {
-        yError() << "FingerController::init"
-                 << "Error: unable to set the velocity control"
-                 << "mode for the joints of the"
-                 << laterality_ << "-" << name_
-                 << "finger";
+    // if (!(setControlMode(VOCAB_CM_VELOCITY)))
+    // {
+    //     yError() << "FingerController::init"
+    //              << "Error: unable to set the velocity control"
+    //              << "mode for the joints of the"
+    //              << laterality_ << "-" << name_
+    //              << "finger";
 
-        return false;
-    }
+    //     return false;
+    // }
 
     // get min/max joints limits
     joints_min_limits_.resize(ctl_joints_.size());
