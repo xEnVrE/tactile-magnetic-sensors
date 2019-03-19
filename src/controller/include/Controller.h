@@ -22,7 +22,7 @@
 
 #include<unordered_map>
 
-enum class ControlMode { Close, Hold, Idle, Open, Step};
+enum class ControlMode { Close, Hold, Idle, Open, Step, WaitOpen};
 
 
 class Controller : public yarp::os::RFModule,
@@ -45,7 +45,10 @@ public:
     /**
      * IDL interface.
      */
-    bool grasp() override;
+
+    std::string get_thr();
+
+    std::string grasp() override;
 
     bool hold() override;
 
@@ -66,7 +69,16 @@ protected:
 
     bool calibrate_tactile_sensors();
 
+    bool run_logger();
+
+    bool stop_logger();
+
+    /**
+     * Rpc clients
+     */
     yarp::os::RpcClient tactile_sensor_reader_port_;
+
+    yarp::os::RpcClient tactile_sensor_logger_port_;
 
     /**
      * Port to get the signal of the tactile sensors from.
@@ -184,6 +196,18 @@ protected:
 
     int fg_0_moves_;
     int fg_1_moves_;
+
+    /**
+     * Last time required for timeouts
+     */
+    double last_time_;
+
+    /**
+     * Timeouts
+     */
+    double grasp_timeout_;
+
+    double open_timeout_;
 };
 
 #endif /* CONTROLLER_H */

@@ -36,12 +36,32 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
     // Get the laterality
     laterality_ = rf.check("laterality", Value("right")).asString();
 
+    yInfo() << log_ID_ << "Laterality: " << laterality_;
+
     // Get the robot name
     robot_ = rf.check("robot", Value("icub")).asString();
+
+    yInfo() << log_ID_ << "Robot name:" << robot_;
 
     // Use or not tactile feedback
     use_tactile_feedback_ = rf.check("use_tactile_feedback", Value("false")).asBool();
     yInfo() << log_ID_ << "Using tactile feedback:" << use_tactile_feedback_;
+
+    // Get the thresholds
+    threshold_0_ = rf.check("threshold_0", Value(0.0)).asDouble();
+
+    threshold_1_ = rf.check("threshold_1", Value(0.0)).asDouble();
+
+    yInfo() << log_ID_ << "Thresholds (0):" << threshold_0_;
+    yInfo() << log_ID_ << "Thresholds (1):" << threshold_1_;
+
+    // Get the timeouts
+    grasp_timeout_ = rf.check("timeout_grasp", Value(-1.0)).asDouble();
+
+    open_timeout_ = rf.check("timeout_open", Value(-1.0)).asDouble();
+
+    yInfo() << log_ID_ << "Grasp timeout:" << grasp_timeout_;
+    yInfo() << log_ID_ << "Open timeout:" << open_timeout_;
 
     // Open RPC input port for commands
     if (!port_rpc_command_.open("/" + port_prefix + "/cmd:i"))
@@ -174,18 +194,21 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
 
     // open rpc clients
     if (!tactile_sensor_reader_port_.open("/" + port_prefix + "/tactile_sensors_reader_rpc:o"))
-      {
-	yError() << log_ID_ << "Unable to open the RPC client port to the 3d tactile sensors reading module.";
+    {
+        yError() << log_ID_ << "Unable to open the RPC client port to the 3d tactile sensors reading module.";
 
-	return false;
-      }
+        return false;
+    }
+
+    if (!tactile_sensor_logger_port_.open("/" + port_prefix + "/tactile_sensors_logger_rpc:o"))
+    {
+        yError() << log_ID_ << "Unable to open the RPC client port to the 3d tactile sensors logger module.";
+
+        return false;
+    }
 
     // reset control mode
     mode_ = ControlMode::Idle;
-
-    // reset threshold
-    threshold_0_= 45.0;
-    threshold_1_ = 45.0;
 
     yInfo() << log_ID_ << "RPC command port opened and attached. Ready to receive commands!";
 
@@ -236,64 +259,75 @@ bool Controller::updateModule()
 
     case ControlMode::Close:
     {
+        if (grasp_timeout_ > 0)
+        {
+            if((yarp::os::Time::now() - last_time_) > grasp_timeout_)
+            {
+                // Go to ControlMode::Open
+                mutex_.lock();
+
+                mode_ = ControlMode::Open;
+
+                mutex_.unlock();
+
+                yInfo() << "Switching from ControlMode::Close to ControlMode::Open";
+
+                break;
+            }
+        }
+
         // Do control if feedback is available
         if (is_tactile_reading_available_ && is_encoders_reading_available_)
         {
-	    double middle_0_x = tactile_readings_[12];
-	    double middle_0_y = tactile_readings_[13];
-	    double middle_0_z = tactile_readings_[14];
+            double middle_0_x = tactile_readings_[12];
+            double middle_0_y = tactile_readings_[13];
+            double middle_0_z = tactile_readings_[14];
 
-	    double middle_1_x = tactile_readings_[15];
-	    double middle_1_y = tactile_readings_[16];
-	    double middle_1_z = tactile_readings_[17];
+            double middle_1_x = tactile_readings_[15];
+            double middle_1_y = tactile_readings_[16];
+            double middle_1_z = tactile_readings_[17];
 
-	    double thumb_0_x = tactile_readings_[0];
-	    double thumb_0_y = tactile_readings_[1];
-	    double thumb_0_z = tactile_readings_[2];
+            double thumb_0_x = tactile_readings_[0];
+            double thumb_0_y = tactile_readings_[1];
+            double thumb_0_z = tactile_readings_[2];
 
-	    double thumb_1_x = tactile_readings_[3];
-	    double thumb_1_y = tactile_readings_[4];
-	    double thumb_1_z = tactile_readings_[5];
+            double thumb_1_x = tactile_readings_[3];
+            double thumb_1_y = tactile_readings_[4];
+            double thumb_1_z = tactile_readings_[5];
 
-	    double norm_middle_0 = std::sqrt(std::pow(middle_0_x, 2) + std::pow(middle_0_y, 2) + std::pow(middle_0_z, 2));
-	    double norm_middle_1 = std::sqrt(std::pow(middle_1_x, 2) + std::pow(middle_1_y, 2) + std::pow(middle_1_z, 2));
-	    double norm_thumb_0 = std::sqrt(std::pow(thumb_0_x, 2) + std::pow(thumb_0_y, 2) + std::pow(thumb_0_z, 2));
-	    double norm_thumb_1 = std::sqrt(std::pow(thumb_1_x, 2) + std::pow(thumb_1_y, 2) + std::pow(thumb_1_z, 2));
+            double norm_middle_0 = std::sqrt(std::pow(middle_0_x, 2) + std::pow(middle_0_y, 2) + std::pow(middle_0_z, 2));
+            double norm_middle_1 = std::sqrt(std::pow(middle_1_x, 2) + std::pow(middle_1_y, 2) + std::pow(middle_1_z, 2));
+            double norm_thumb_0 = std::sqrt(std::pow(thumb_0_x, 2) + std::pow(thumb_0_y, 2) + std::pow(thumb_0_z, 2));
+            double norm_thumb_1 = std::sqrt(std::pow(thumb_1_x, 2) + std::pow(thumb_1_y, 2) + std::pow(thumb_1_z, 2));
 
-
-	    // bool good_grasp = ((std::abs(index_z) > threshold_) || (std::abs(thumb_z) > threshold_));
-
-            // TODO: control fingers
             for (auto& finger : fingers_)
             {
-	      if (finger.first == "thumb")
-		{
-		  if ((norm_thumb_0 < threshold_0_) && (norm_thumb_1 < threshold_0_))
-		    {
-		      finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
-		      fg_0_moves_++;
-		      yInfo() << "Thumb moves" << fg_0_moves_;
-		    }
-		  else
-		    {
-		      finger.second.switchToPositionControl();
-		      // yInfo() << "** Thumb stops";
-		    }
-		}
-	      else if (finger.first == "middle")
-		{
-		  if ((norm_middle_0 < threshold_1_) && (norm_middle_1 < threshold_1_))
-		    {
-		      fg_1_moves_++;
-		      yInfo() << "Middle moves" << fg_1_moves_;
-		      finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
-		    }
-		  else
-		    {
-		      // yInfo() << "** Middle stops";
-		      finger.second.switchToPositionControl();
-		    }
-		}
+                if (finger.first == "thumb")
+                {
+                    if ((norm_thumb_0 < threshold_0_) && (norm_thumb_1 < threshold_0_))
+                    {
+                        fg_0_moves_++;
+                        yInfo() << "Thumb moves" << fg_0_moves_;
+                        finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
+                    }
+                    else
+                    {
+                        finger.second.switchToPositionControl();
+                    }
+                }
+                else if (finger.first == "middle")
+                {
+                    if ((norm_middle_0 < threshold_1_) && (norm_middle_1 < threshold_1_))
+                    {
+                        fg_1_moves_++;
+                        yInfo() << "Middle moves" << fg_1_moves_;
+                        finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
+                    }
+                    else
+                    {
+                        finger.second.switchToPositionControl();
+                    }
+                }
 
             }
         }
@@ -309,8 +343,10 @@ bool Controller::updateModule()
         // go back to Idle
         mutex_.lock();
         mode_ = ControlMode::Idle;
-        yInfo() << "Switching from ControlMode::Hold to ControlMode::Idle";
         mutex_.unlock();
+
+        yInfo() << "Switching from ControlMode::Hold to ControlMode::Idle";
+
         break;
     }
 
@@ -325,11 +361,28 @@ bool Controller::updateModule()
         for (auto& finger : fingers_)
             finger.second.goHome(fingers_opening_vels_[finger.first]);
 
-        // go back to Idle
-        mutex_.lock();
-        mode_ = ControlMode::Idle;
-        yInfo() << "Switching from ControlMode::Open to ControlMode::Idle";
-        mutex_.unlock();
+        if (open_timeout_ > 0)
+        {
+            // go to WaitOpen
+            mutex_.lock();
+
+            mode_ = ControlMode::WaitOpen;
+            last_time_ = yarp::os::Time::now();
+
+            mutex_.unlock();
+
+            yInfo() << "Switching from ControlMode::Open to ControlMode::WaitOpen";
+        }
+        else
+        {
+            // go back to Idle
+            mutex_.lock();
+            mode_ = ControlMode::Idle;
+            mutex_.unlock();
+
+            yInfo() << "Switching from ControlMode::Open to ControlMode::Idle";
+        }
+
         break;
     }
 
@@ -349,6 +402,29 @@ bool Controller::updateModule()
         break;
     }
 
+    case ControlMode::WaitOpen:
+    {
+        if((yarp::os::Time::now() - last_time_) > open_timeout_)
+        {
+            // stop the logger
+            if(stop_logger())
+                yInfo() << "Logger stopped succesfully!";
+            else
+                yError() << "Cannot stop logger!";
+
+            // Go to ControlMode::Idle
+            mutex_.lock();
+
+            mode_ = ControlMode::Idle;
+
+            mutex_.unlock();
+
+            yInfo() << "Switching from ControlMode::WaitOpen to ControlMode::Idle";
+        }
+
+        break;
+    }
+
     }
 
     return true;
@@ -364,7 +440,8 @@ double Controller::getPeriod()
 bool Controller::close()
 {
 
-  tactile_sensor_reader_port_.close();
+    tactile_sensor_reader_port_.close();
+    tactile_sensor_logger_port_.close();
 
     return true;
 }
@@ -373,15 +450,52 @@ bool Controller::close()
 /**
  * IDL interface.
  */
-bool Controller::grasp()
+
+std::string Controller::get_thr()
 {
-    calibrate_tactile_sensors();
+    std::string reply;
+
+    reply = "Thresholds are: (" + std::to_string(threshold_0_) + ", " + std::to_string(threshold_1_) + ")";
+
+    return reply;
+}
+
+std::string Controller::grasp()
+{
+    std::string reply;
+
+    if(calibrate_tactile_sensors())
+        yInfo() << "Sensors calibrated succesfully!";
+    else
+    {
+        yError() << "Cannot calibrate sensors!";
+
+        reply = "[FAIL] Cannot calibrate sensors.";
+
+        return reply;
+    }
+
+    if(run_logger())
+        yInfo() << "Logger run succesfully!";
+    else
+    {
+        yError() << "Cannot run logger!";
+
+        reply = "[FAIL] Cannot run logger.";
+
+        return reply;
+    }
+
+    reply = "[OK] Command issued.";
 
     mutex_.lock();
+
     mode_ = ControlMode::Close;
+    last_time_ = yarp::os::Time::now();
+
     mutex_.unlock();
 
-    return true;
+    return reply;
 }
 
 
@@ -390,6 +504,8 @@ bool Controller::hold()
     mutex_.lock();
     mode_ = ControlMode::Hold;
     mutex_.unlock();
+
+    return true;
 }
 
 
@@ -549,4 +665,34 @@ bool Controller::calibrate_tactile_sensors()
     return false;
 
   return true;
+}
+
+
+bool Controller::run_logger()
+{
+    Bottle cmd, reply;
+    cmd.addString("run");
+
+    if(!tactile_sensor_logger_port_.write(cmd, reply))
+        return false;
+
+    if (reply.get(0).asString() != "ok")
+        return false;
+
+    return true;
+}
+
+
+bool Controller::stop_logger()
+{
+    Bottle cmd, reply;
+    cmd.addString("stop");
+
+    if(!tactile_sensor_logger_port_.write(cmd, reply))
+        return false;
+
+    if (reply.get(0).asString() != "ok")
+        return false;
+
+    return true;
 }

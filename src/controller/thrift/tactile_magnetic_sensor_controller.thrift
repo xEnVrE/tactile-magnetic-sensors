@@ -5,7 +5,9 @@
 
 service TactileMagneticSensorControllerIDL
 {
-    bool grasp();
+    string get_thr();
+
+    string grasp();
 
     bool hold();
 

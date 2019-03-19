@@ -6,16 +6,4 @@
     <node>localhost</node>
   </module>
 
-  <connection>
-    <from>/tactile-magnetic-sensor/data:o</from>
-    <to>/tactile-magnetic-sensor-controller/data:i</to>
-    <protocol>fast_tcp</protocol>
-  </connection>
-
-  <connection>
-    <from>/tactile-magnetic-sensor-controller/tactile_sensors_reader_rpc:o</from>
-    <to>/tactile-magnetic-sensor/cmd:i</to>
-    <protocol>tcp</protocol>
-  </connection>
-
 </application>
