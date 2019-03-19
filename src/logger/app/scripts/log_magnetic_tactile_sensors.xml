@@ -15,7 +15,7 @@
 
   <connection>
     <from>/object-tracking-manipulation/tactile_sensors_reader_rpc:o</from>
-    <to>/tactile-magnetic-sensor-module/cmd:i</to>
+    <to>/tactile-magnetic-sensor/cmd:i</to>
     <protocol>tcp</protocol>
   </connection>
 
