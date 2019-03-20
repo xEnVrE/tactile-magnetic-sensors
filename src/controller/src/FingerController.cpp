@@ -201,27 +201,28 @@ bool FingerController::goHome(const double& ref_vel)
 
     // set reference joints velocities
     // the same velocity is used for all the joints
-    for (std::size_t i = 0; i < ctl_joints_.size(); i++)
-    {
-        ipos_->setRefAcceleration(ctl_joints_[i], std::numeric_limits<double>::max());
-        // if (!(
-	ipos_->setRefSpeed(ctl_joints_[i], ref_vel);// ))
-	// {
-	//     yInfo() << "FingerController::goHome Error:"
-	// 	    << "unable to set joints reference speeds for finger"
-	// 	    << laterality_ << "-" << name_ << "(joint #" << ctl_joints_[i] << ")";
-
-	//     return false;
-	// }
-    }
-    // if (!(ipos_->setRefSpeeds(ctl_joints_.size(), ctl_joints_.getFirst(), speeds.data())))
+    // for (std::size_t i = 0; i < ctl_joints_.size(); i++)
     // {
-    //     yInfo() << "FingerController::goHome Error:"
-    //             << "unable to set joints reference speeds for finger"
-    //             << laterality_ << "-" << name_;
+    //     ipos_->setRefAcceleration(ctl_joints_[i], std::numeric_limits<double>::max());
+    //     // if (!(
+    // 	ipos_->setRefSpeed(ctl_joints_[i], ref_vel);// ))
+    // 	// {
+    // 	//     yInfo() << "FingerController::goHome Error:"
+    // 	// 	    << "unable to set joints reference speeds for finger"
+    // 	// 	    << laterality_ << "-" << name_ << "(joint #" << ctl_joints_[i] << ")";
 
-    //     return false;
+    // 	//     return false;
+    // 	// }
     // }
+    yarp::sig::Vector speeds(ctl_joints_.size(), ref_vel);
+    if (!(ipos_->setRefSpeeds(ctl_joints_.size(), ctl_joints_.getFirst(), speeds.data())))
+    {
+        yInfo() << "FingerController::goHome Error:"
+                << "unable to set joints reference speeds for finger"
+                << laterality_ << "-" << name_;
+
+        return false;
+    }
 
     // restore initial position of finger joints
     if (!(ipos_->positionMove(ctl_joints_.size(), ctl_joints_.getFirst(), joints_home_.data())))
