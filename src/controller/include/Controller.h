@@ -22,7 +22,7 @@
 
 #include<unordered_map>
 
-enum class ControlMode { Close, Hold, Idle, Open, Step, WaitOpen};
+enum class ControlMode { Close, Hold, Idle, Open, OpenWStopLog, Step, WaitOpen};
 
 
 class Controller : public yarp::os::RFModule,
@@ -53,6 +53,8 @@ public:
     bool hold() override;
 
     bool open() override;
+
+    bool open_stop_log() override;
 
     bool quit() override;
 

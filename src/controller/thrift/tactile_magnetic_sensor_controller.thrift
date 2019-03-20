@@ -13,6 +13,8 @@ service TactileMagneticSensorControllerIDL
 
     bool open();
 
+    bool open_stop_log();
+
     bool quit();
 
     bool step();

@@ -260,14 +260,14 @@ bool Controller::updateModule()
         {
             if((yarp::os::Time::now() - last_time_) > grasp_timeout_)
             {
-                // Go to ControlMode::Open
+                // Go to ControlMode::OpenWLog
                 mutex_.lock();
 
-                mode_ = ControlMode::Open;
+                mode_ = ControlMode::OpenWStopLog;
 
                 mutex_.unlock();
 
-                yInfo() << "Switching from ControlMode::Close to ControlMode::Open";
+                yInfo() << "Switching from ControlMode::Close to ControlMode::OpenWLog";
 
                 break;
             }
@@ -331,6 +331,21 @@ bool Controller::updateModule()
         for (auto& finger : fingers_)
             finger.second.goHome(fingers_opening_vels_[finger.first]);
 
+        // go back to Idle
+        mutex_.lock();
+        mode_ = ControlMode::Idle;
+        mutex_.unlock();
+
+        yInfo() << "Switching from ControlMode::Open to ControlMode::Idle";
+
+        break;
+    }
+
+    case ControlMode::OpenWStopLog:
+    {
+        for (auto& finger : fingers_)
+            finger.second.goHome(fingers_opening_vels_[finger.first]);
+
         if (open_timeout_ > 0)
         {
             // go to WaitOpen
@@ -341,7 +356,7 @@ bool Controller::updateModule()
 
             mutex_.unlock();
 
-            yInfo() << "Switching from ControlMode::Open to ControlMode::WaitOpen";
+            yInfo() << "Switching from ControlMode::OpenWLog to ControlMode::WaitOpen";
         }
         else
         {
@@ -350,7 +365,7 @@ bool Controller::updateModule()
             mode_ = ControlMode::Idle;
             mutex_.unlock();
 
-            yInfo() << "Switching from ControlMode::Open to ControlMode::Idle";
+            yInfo() << "Switching from ControlMode::OpenWLog to ControlMode::Idle";
         }
 
         break;
@@ -367,7 +382,7 @@ bool Controller::updateModule()
         // go back to Idle
         mutex_.lock();
         mode_ = ControlMode::Idle;
-        yInfo() << "Switching from ControlMode::Open to ControlMode::Idle";
+        yInfo() << "Switching from ControlMode::Step to ControlMode::Idle";
         mutex_.unlock();
         break;
     }
@@ -486,6 +501,16 @@ bool Controller::open()
 {
     mutex_.lock();
     mode_ = ControlMode::Open;
+    mutex_.unlock();
+
+    return true;
+}
+
+
+bool Controller::open_stop_log()
+{
+    mutex_.lock();
+    mode_ = ControlMode::OpenWStopLog;
     mutex_.unlock();
 
     return true;
