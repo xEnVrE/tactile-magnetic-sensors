@@ -19,5 +19,11 @@ service TactileMagneticSensorControllerIDL
 
     bool stop();
 
-    bool thr(1:i16 threshold_0, 2:i16 threshold_1);
+    bool thr_thumb(1:double threshold);
+
+    bool thr_index(1:double threshold);
+
+    bool thr_middle(1:double threshold);
+
+    bool thr_ring(1:double threshold);
 }

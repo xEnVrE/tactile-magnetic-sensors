@@ -60,7 +60,13 @@ public:
 
     bool stop() override;
 
-    bool thr(const int16_t threshold_0, const int16_t threshold_1);
+    bool thr_thumb(const double threshold);
+
+    bool thr_index(const double threshold);
+
+    bool thr_middle(const double threshold);
+
+    bool thr_ring(const double threshold);
 
 protected:
     std::vector<std::string> loadListString(yarp::os::ResourceFinder& rf, const std::string key);
@@ -182,6 +188,11 @@ protected:
     std::unordered_map<std::string, yarp::sig::Vector> fingers_deltas_vels_;
 
     /**
+     * Finger thresholds(for adaptive grasping).
+     */
+    std::unordered_map<std::string, double> fingers_thresholds_;
+
+    /**
      * Name of the arm.
      */
     std::string laterality_;
@@ -190,12 +201,6 @@ protected:
      * Name of the robot.
      */
     std::string robot_;
-
-    double threshold_0_;
-    double threshold_1_;
-
-    int fg_0_moves_;
-    int fg_1_moves_;
 
     /**
      * Last time required for timeouts

@@ -47,14 +47,6 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
     use_tactile_feedback_ = rf.check("use_tactile_feedback", Value("false")).asBool();
     yInfo() << log_ID_ << "Using tactile feedback:" << use_tactile_feedback_;
 
-    // Get the thresholds
-    threshold_0_ = rf.check("threshold_0", Value(0.0)).asDouble();
-
-    threshold_1_ = rf.check("threshold_1", Value(0.0)).asDouble();
-
-    yInfo() << log_ID_ << "Thresholds (0):" << threshold_0_;
-    yInfo() << log_ID_ << "Thresholds (1):" << threshold_1_;
-
     // Get the timeouts
     grasp_timeout_ = rf.check("timeout_grasp", Value(-1.0)).asDouble();
 
@@ -189,6 +181,11 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
         yInfo() << "Deltas feedforward velocities:";
         yInfo() << fingers_deltas_vels_.at(name).toString();
 
+        // load thresholds
+        fingers_thresholds_[name] = rf.check("threshold", Value(10.0)).asDouble();
+        yInfo() << "Thresholds:";
+        yInfo() << fingers_thresholds_[name];
+
         fingers_[name] = finger;
     }
 
@@ -279,56 +276,29 @@ bool Controller::updateModule()
         // Do control if feedback is available
         if (is_tactile_reading_available_ && is_encoders_reading_available_)
         {
-            double middle_0_x = tactile_readings_[12];
-            double middle_0_y = tactile_readings_[13];
-            double middle_0_z = tactile_readings_[14];
-
-            double middle_1_x = tactile_readings_[15];
-            double middle_1_y = tactile_readings_[16];
-            double middle_1_z = tactile_readings_[17];
-
-            double thumb_0_x = tactile_readings_[0];
-            double thumb_0_y = tactile_readings_[1];
-            double thumb_0_z = tactile_readings_[2];
-
-            double thumb_1_x = tactile_readings_[3];
-            double thumb_1_y = tactile_readings_[4];
-            double thumb_1_z = tactile_readings_[5];
-
-            double norm_middle_0 = std::sqrt(std::pow(middle_0_x, 2) + std::pow(middle_0_y, 2) + std::pow(middle_0_z, 2));
-            double norm_middle_1 = std::sqrt(std::pow(middle_1_x, 2) + std::pow(middle_1_y, 2) + std::pow(middle_1_z, 2));
-            double norm_thumb_0 = std::sqrt(std::pow(thumb_0_x, 2) + std::pow(thumb_0_y, 2) + std::pow(thumb_0_z, 2));
-            double norm_thumb_1 = std::sqrt(std::pow(thumb_1_x, 2) + std::pow(thumb_1_y, 2) + std::pow(thumb_1_z, 2));
+            std::unordered_map<std::string, yarp::sig::VectorOf<int>> readings;
+            readings["thumb_0"] = tactile_readings_.subVector(0, 2);
+            readings["thumb_1"] = tactile_readings_.subVector(3, 5);
+            readings["index_0"] = tactile_readings_.subVector(6, 8);
+            readings["index_1"] = tactile_readings_.subVector(9, 11);
+            readings["middle_0"] = tactile_readings_.subVector(12, 14);
+            readings["middle_1"] = tactile_readings_.subVector(15, 17);
+            readings["ring_0"] = tactile_readings_.subVector(18, 20);
+            readings["ring_1"] = tactile_readings_.subVector(21, 23);
 
             for (auto& finger : fingers_)
             {
-                if (finger.first == "thumb")
-                {
-                    if ((norm_thumb_0 < threshold_0_) && (norm_thumb_1 < threshold_0_))
-                    {
-                        fg_0_moves_++;
-                        yInfo() << "Thumb moves" << fg_0_moves_;
-                        finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
-                    }
-                    else
-                    {
-                        finger.second.switchToPositionControl();
-                    }
-                }
-                else if (finger.first == "middle")
-                {
-                    if ((norm_middle_0 < threshold_1_) && (norm_middle_1 < threshold_1_))
-                    {
-                        fg_1_moves_++;
-                        yInfo() << "Middle moves" << fg_1_moves_;
-                        finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
-                    }
-                    else
-                    {
-                        finger.second.switchToPositionControl();
-                    }
-                }
+                yarp::sig::VectorOf<int> sensor_0 = readings[finger.first + "_0"];
+                yarp::sig::VectorOf<int> sensor_1 = readings[finger.first + "_1"];
+                double norm_0 = std::sqrt(std::pow(sensor_0[0], 2) + std::pow(sensor_0[1], 2) + std::pow(sensor_0[2], 2));
+                double norm_1 = std::sqrt(std::pow(sensor_1[0], 2) + std::pow(sensor_1[1], 2) + std::pow(sensor_1[2], 2));
 
+                if ((norm_0 < fingers_thresholds_[finger.first]) && (norm_1 < fingers_thresholds_[finger.first]))
+                {
+                    finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
+                }
+                else
+                    finger.second.switchToPositionControl();
             }
         }
 
@@ -455,10 +425,13 @@ std::string Controller::get_thr()
 {
     std::string reply;
 
-    reply = "Thresholds are: (" + std::to_string(threshold_0_) + ", " + std::to_string(threshold_1_) + ")";
+    reply = "Thresholds are:";
+    for (auto& threshold : fingers_thresholds_)
+        reply += threshold.first + ": " + std::to_string(threshold.second) + ",";
 
     return reply;
 }
+
 
 std::string Controller::grasp()
 {
@@ -570,16 +543,43 @@ bool Controller::stop()
 }
 
 
-bool Controller::thr(const int16_t threshold_0, const int16_t threshold_1)
+bool Controller::thr_thumb(const double threshold)
 {
-  mutex_.lock();
-  threshold_0_ = threshold_0;
-  threshold_1_ = threshold_1;
-  mutex_.unlock();
+    mutex_.lock();
+    fingers_thresholds_.at("thumb") = threshold;
+    mutex_.unlock();
 
-  yInfo() << "New thresholds are:" << threshold_0_ << ", " << threshold_1_;
+    yInfo() << "New threshold is:" << fingers_thresholds_.at("thumb");
+}
 
-  return true;
+
+bool Controller::thr_index(const double threshold)
+{
+    mutex_.lock();
+    fingers_thresholds_.at("index") = threshold;
+    mutex_.unlock();
+
+    yInfo() << "New threshold is:" << fingers_thresholds_.at("index");
+}
+
+
+bool Controller::thr_middle(const double threshold)
+{
+    mutex_.lock();
+    fingers_thresholds_.at("middle") = threshold;
+    mutex_.unlock();
+
+    yInfo() << "New threshold is:" << fingers_thresholds_.at("middle");
+}
+
+
+bool Controller::thr_ring(const double threshold)
+{
+    mutex_.lock();
+    fingers_thresholds_.at("ring") = threshold;
+    mutex_.unlock();
+
+    yInfo() << "New threshold is:" << fingers_thresholds_.at("ring");
 }
 
 
