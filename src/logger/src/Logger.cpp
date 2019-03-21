@@ -104,7 +104,7 @@ bool Logger::stop()
     disable_log();
 
     // close video
-    video_writer_->release();
+    // video_writer_->release();
 
     // reset flags
     is_arm_state_available_ = false;
@@ -158,7 +158,7 @@ bool Logger::stop()
 
 bool Logger::quit()
 {
-    disable_log();
+    // disable_log();
 
     mutex_.lock();
 
@@ -400,8 +400,11 @@ bool Logger::updateModule()
             {
 	        cv::Mat image = yarp::cv::toCvMat(last_image_in_).clone();
 
-	        video_writer_->write(image);
-	        current_camera_period_ = 0.0;
+		if ((video_writer_->isOpened()))
+		{
+		    video_writer_->write(image);
+		    current_camera_period_ = 0.0;
+		}
             }
             else
                 current_camera_period_ += step;
