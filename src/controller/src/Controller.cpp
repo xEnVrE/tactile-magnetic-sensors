@@ -575,6 +575,8 @@ bool Controller::thr_thumb(const double threshold)
     mutex_.unlock();
 
     yInfo() << "New threshold is:" << fingers_thresholds_.at("thumb");
+
+    return true;
 }
 
 
@@ -585,6 +587,8 @@ bool Controller::thr_index(const double threshold)
     mutex_.unlock();
 
     yInfo() << "New threshold is:" << fingers_thresholds_.at("index");
+
+    return true;
 }
 
 
@@ -595,6 +599,8 @@ bool Controller::thr_middle(const double threshold)
     mutex_.unlock();
 
     yInfo() << "New threshold is:" << fingers_thresholds_.at("middle");
+
+    return true;
 }
 
 
@@ -605,6 +611,8 @@ bool Controller::thr_ring(const double threshold)
     mutex_.unlock();
 
     yInfo() << "New threshold is:" << fingers_thresholds_.at("ring");
+
+    return true;
 }
 
 
