@@ -17,6 +17,8 @@ service TactileMagneticSensorControllerIDL
 
     bool quit();
 
+    bool reset();
+
     bool step();
 
     bool stop();

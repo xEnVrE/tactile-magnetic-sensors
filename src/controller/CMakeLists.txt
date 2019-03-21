@@ -6,6 +6,7 @@ find_package(YARP CONFIG REQUIRED
              OS
              math
              sig
+             gsl
              )
 
 # ICUB
@@ -40,6 +41,7 @@ target_link_libraries(${EXE_TARGET_NAME}
                       YARP::YARP_init
                       YARP::YARP_math
                       YARP::YARP_sig
+                      YARP::YARP_gsl
                       ${ICUB_LIBRARIES}
                       )
 

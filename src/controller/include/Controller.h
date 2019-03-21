@@ -58,6 +58,8 @@ public:
 
     bool quit() override;
 
+    bool reset() override;
+
     bool step() override;
 
     bool stop() override;
@@ -80,6 +82,8 @@ protected:
     bool run_logger();
 
     bool stop_logger();
+
+    void reset_contact_detection();
 
     /**
      * Rpc clients
@@ -193,6 +197,11 @@ protected:
      * Finger thresholds(for adaptive grasping).
      */
     std::unordered_map<std::string, double> fingers_thresholds_;
+
+    /**
+     * Finger contact detection.
+     */
+    std::unordered_map<std::string, bool> fingers_detection_;
 
     /**
      * Name of the arm.

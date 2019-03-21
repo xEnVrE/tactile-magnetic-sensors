@@ -189,6 +189,9 @@ bool Controller::configure(yarp::os::ResourceFinder& rf)
         fingers_[name] = finger;
     }
 
+    // reset fingers detection
+    reset_contact_detection();
+
     // open rpc clients
     if (!tactile_sensor_reader_port_.open("/" + port_prefix + "/tactile_sensors_reader_rpc:o"))
     {
@@ -293,12 +296,15 @@ bool Controller::updateModule()
                 double norm_0 = std::sqrt(std::pow(sensor_0[0], 2) + std::pow(sensor_0[1], 2) + std::pow(sensor_0[2], 2));
                 double norm_1 = std::sqrt(std::pow(sensor_1[0], 2) + std::pow(sensor_1[1], 2) + std::pow(sensor_1[2], 2));
 
-                if ((norm_0 < fingers_thresholds_[finger.first]) && (norm_1 < fingers_thresholds_[finger.first]))
+                if ((!fingers_detection_.at(finger.first)) && (norm_0 < fingers_thresholds_[finger.first]) && (norm_1 < fingers_thresholds_[finger.first]))
                 {
                     finger.second.setJointsVelocities(fingers_closing_vels_[finger.first], true);
                 }
                 else
+                {
                     finger.second.switchToPositionControl();
+                    fingers_detection_.at(finger.first) = true;
+                }
             }
         }
 
@@ -474,14 +480,15 @@ std::string Controller::grasp()
         return reply;
     }
 
-    reply = "[OK] Command issued.";
-
     mutex_.lock();
 
     mode_ = ControlMode::Close;
+    reset_contact_detection();
     last_time_ = yarp::os::Time::now();
 
     mutex_.unlock();
+
+    reply = "[OK] Command issued.";
 
     return reply;
 }
@@ -535,6 +542,14 @@ bool Controller::quit()
 
     // Note: stopModule is a method provided by class RFModule.
     stopModule();
+
+    return true;
+}
+
+
+bool Controller::reset()
+{
+    reset_contact_detection();
 
     return true;
 }
@@ -729,4 +744,11 @@ bool Controller::stop_logger()
         return false;
 
     return true;
+}
+
+
+void Controller::reset_contact_detection()
+{
+    for (auto& finger: fingers_detection_)
+        fingers_detection_[finger.first] = false;
 }
