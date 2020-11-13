@@ -3,7 +3,7 @@ set(EXE_TARGET_NAME tactile-magnetic-sensor-module)
 # YARP
 find_package(YARP CONFIG REQUIRED
              COMPONENTS
-             OS
+             os
              sig
              )
 
@@ -30,7 +30,7 @@ target_include_directories(${EXE_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 
 target_link_libraries(${EXE_TARGET_NAME}
                       PRIVATE
-                      YARP::YARP_OS
+                      YARP::YARP_os
                       YARP::YARP_init
                       YARP::YARP_math
                       YARP::YARP_sig
