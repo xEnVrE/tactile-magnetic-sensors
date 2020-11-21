@@ -5,6 +5,7 @@
 #include <yarp/os/Port.h>
 #include <yarp/os/ResourceFinder.h>
 #include <yarp/os/RFModule.h>
+#include <yarp/os/Stamp.h>
 #include <yarp/sig/Vector.h>
 
 #include <skinSensor.h>
@@ -45,6 +46,8 @@ protected:
     yarp::os::Port port_rpc_command_;
 
     yarp::os::BufferedPort<yarp::sig::VectorOf<int>> port_data_out_;
+
+    yarp::os::Stamp stamp_;
 
     const std::string log_ID_ = "[TACTILE_MAGNETIC_SENSORS_MODULE]";
 

@@ -110,7 +110,10 @@ bool ReadingModule::updateModule()
 
             data_out = VectorOf<int>(sensors_data.size(), sensors_data.data());
 
+            stamp_.update();
+
             // Send the data
+            port_data_out_.setEnvelope(stamp_);
             port_data_out_.write();
         }
     }
