@@ -104,15 +104,18 @@ void skinSensor::calibrate()
              for(size_t i=0;i<numberOfSensors;i++){
                 if(sensors->at(i).getID() == id_)
                 {
-                    sensors->at(i).saveXData(data_[1] << 8 | data_[2]);
-                    sensors->at(i).saveYData(data_[3] << 8 | data_[4]);
+                    // Nicola: after tests it seems that the order here was erroneously reversed (28/11/2020)
+                    // sensors->at(i).saveXData(data_[1] << 8 | data_[2]);
+                    // sensors->at(i).saveYData(data_[3] << 8 | data_[4]);
+                    sensors->at(i).saveXData(data_[3] << 8 | data_[4]);
+                    sensors->at(i).saveYData(data_[1] << 8 | data_[2]);
                     sensors->at(i).saveZData(data_[5] << 8 | data_[6]);
                     break;
                 }
             }
         }
     }
-    
+
     //Fire up calibration for each sensor (average of sensors data and set of baselines)
     for(size_t i = 0; i < numberOfSensors; i++)
         sensors->at(i).calibrate();
@@ -155,8 +158,11 @@ void skinSensor::updateSensors()
             for(size_t i=0;i<numberOfSensors;i++){
                 if(sensors->at(i).getID() == id_)
                 {
-                    sensors->at(i).saveXData(data_[1] << 8 | data_[2]);
-                    sensors->at(i).saveYData(data_[3] << 8 | data_[4]);
+                    // Nicola: after tests it seems that the order here was erroneously reversed (28/11/2020)
+                    // sensors->at(i).saveXData(data_[1] << 8 | data_[2]);
+                    // sensors->at(i).saveYData(data_[3] << 8 | data_[4]);
+                    sensors->at(i).saveXData(data_[3] << 8 | data_[4]);
+                    sensors->at(i).saveYData(data_[1] << 8 | data_[2]);
                     sensors->at(i).saveZData(data_[5] << 8 | data_[6]);
                     break;
                 }
